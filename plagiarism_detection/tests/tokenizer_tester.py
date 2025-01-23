@@ -19,7 +19,7 @@ THEIR_TOKENIZER = CountVectorizer(stop_words=stopwords.words('english')).build_t
 
 
 def test_tokenize ():
-    print("[Tests] [Tokenizer::test_tokenize] [launched]")
+    print("[Tests] [Tokenizer::tokenize] [launched]")
     texts = read_files(DIRECTORY)
     for text in texts:
         ours = OUR_TOKENIZER.tokenize(text)
@@ -27,9 +27,9 @@ def test_tokenize ():
         if ours != theirs:
             compare_tokens_results(ours, theirs)
             compare_tokens_results_too(ours, theirs)
-            print("[Tests] [Tokenizer::test_tokenize] [failed]")
+            print("[Tests] [Tokenizer::tokenize] [failed]")
             return False
-    print("[Tests] [Tokenizer::test_tokenize] [passed]")
+    print("[Tests] [Tokenizer::tokenize] [passed]")
     return True
 
 
