@@ -1,6 +1,8 @@
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 from model.featurizers.count_vector_featurizer import CountVectorFeaturizer
+from model.featurizers.tfidf_featurizer import TfidfFeaturizer
 from model.tokenizers.tokenizer import Tokenizer
 from util.util import read_files
 
@@ -25,6 +27,19 @@ def test_fit (our_featurizer, their_featurizer):
     return True
 
 
+def test_transform (our_featurizer, their_featurizer):
+    print(f"[Tests] [{type(our_featurizer).__name__}::transform] launched")
+    texts = read_files(DIRECTORY)
+    our_featurizer.fit(texts)
+    their_featurizer.fit(texts)
+    if not (our_featurizer.transform(texts).all() == their_featurizer.transform(texts).toarray().all()):
+        compare_vocabularies(our_vocabulary, their_vocabulary)
+        print(f"[Tests] [{type(our_featurizer).__name__}::transform] failed")
+        return False
+    print(f"[Tests] [{type(our_featurizer).__name__}::transform] passed")
+    return True
+
+
 def compare_vocabularies (ours, theirs):
     print()
     print(f"lengths     ours={len(ours)} theirs={len(theirs)}")
@@ -36,4 +51,22 @@ def compare_vocabularies (ours, theirs):
 
 if __name__ == "__main__":
 
-    test_fit(CountVectorFeaturizer(), CountVectorizer(tokenizer=Tokenizer().tokenize))
+    cv = CountVectorFeaturizer()
+    tfidf = TfidfFeaturizer()
+
+    cv_sk = CountVectorizer(tokenizer=Tokenizer().tokenize)
+    tfidf_sk = TfidfVectorizer(tokenizer=Tokenizer().tokenize)
+
+    test_fit(cv, cv_sk)
+    test_fit(tfidf, tfidf_sk)
+
+    test_transform(cv, cv_sk)
+    test_transform(tfidf, tfidf_sk)
+
+    """
+    f = CountVectorizer(tokenizer=Tokenizer().tokenize)
+    f.fit(["chat noir", "chat blanc"])
+    print(f.vocabulary_)
+    f.fit(["sur le toît"])
+    print(f.vocabulary_)
+    """
