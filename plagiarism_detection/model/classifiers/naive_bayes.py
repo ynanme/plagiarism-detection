@@ -1,8 +1,10 @@
 import numpy as np
 from typing import List, Dict
 
+from model.classifiers.classifier import Classifier
 
-class NaiveBayesClassifier:
+
+class NaiveBayesClassifier (Classifier):
     def __init__(self):
         self.class_priors = {} #{plagiat, non_plagiat}
         self.word_probabilities = {} #word_likelihoods
@@ -36,6 +38,7 @@ class NaiveBayesClassifier:
 def compute_class_priors(filtered_labels):
     total_files = len(filtered_labels)
     plagiat_files = sum(1 for v in filtered_labels.values() if v == "plagiat") #number or plagiat files
+    #print(plagiat_files, total_files)
     return {
         "plagiat": plagiat_files / total_files, #probability of a file been plagiat P(plagiat)
         "non_plagiat": 1 - (plagiat_files / total_files) #probability of a file been non plagiat P(non_plagiat)
@@ -50,6 +53,10 @@ def compute_word_probabilities(filtered_labels: Dict[str, str], featurizer, matr
             if filtered_labels[file_name] == 'plagiat':
                 totals[index, 1] += row[index] #if the file is plagiat then add the count to the second column
 
+    """print(matrix)
+    print(filtered_labels)
+    print([filtered_labels[file_name] == 'plagiat' for file_name in filtered_labels.keys()])
+    print([filtered_labels[file_name] == 'non_plagiat' for file_name in filtered_labels.keys()])"""
     total_plagiat_words = matrix[[filtered_labels[file_name] == 'plagiat' for file_name in filtered_labels.keys()]].sum().sum()
     total_non_plagiat_words = matrix[[filtered_labels[file_name] == 'non_plagiat' for file_name in filtered_labels.keys()]].sum().sum()
 
