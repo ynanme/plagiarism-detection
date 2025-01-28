@@ -21,7 +21,7 @@ class PlagiarismDetector:
 
     def trainn (self, texts, categories):
         #self.featurizer.fit(texts)
-        print(np.array(list(categories.values())))
+        #print(np.array(list(categories.values())))
         self.classifier.fit(self.featurizer.fit_transform(texts), np.array(list(categories.values())))
 
     def classify (self, text):

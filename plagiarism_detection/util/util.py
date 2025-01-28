@@ -2,6 +2,16 @@ import os
 from charset_normalizer import from_path
 
 
+"""
+python3 -c "import numpy; print(numpy.__version__)"
+pip install --upgrade pip
+pip install numpy==1.24.4
+pip install --upgrade scipy
+pip install --upgrade scipy
+pip install --upgrade scikit-learn
+"""
+
+
 def read_file(file_path):
     """
     Read the file with the detected encoding.

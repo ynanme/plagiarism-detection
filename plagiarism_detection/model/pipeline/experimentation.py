@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import random
+import math
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from typing import List, Dict
@@ -36,8 +38,8 @@ def evaluate_detectors (detectors, data, expected):
 
 
 DIRECTORY = "data/1"
-DATA = read_files(DIRECTORY)
-CATEGORIES = load_labels(DIRECTORY)
+#DATA = read_files(DIRECTORY)
+#CATEGORIES = load_labels(DIRECTORY)
 
 
 def compare ():
@@ -80,9 +82,55 @@ def compare2 ():
     plt.show()
 
 
+def compare3 (classs):
+    detectors = {
+        "inspector": PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer()),
+        "director": PlagiarismDetector(MultinomialNB(), CountVectorizer())
+    }
+    items = list(CATEGORIES.items())
+    targets = [i for i in range(len(items)) if items[i][1] == classs]
+    CATEGORIESS = dict([items[i] for i in targets])
+    DATAA = [DATA[i] for i in targets]
+    accuracies = []
+    for limit in range(2,len(DATAA)+1):
+        data = DATAA[:limit]
+        categories = dict(list(CATEGORIES.items())[:limit])
+        train_detectors(list(detectors.values()), data, categories)
+        accuracies.append(evaluate_detectors(list(detectors.values()), data, categories))
+    plt.figure()
+    plt.plot([_ for _ in range(1,len(DATAA))], [accuracy[0] for accuracy in accuracies])
+    plt.plot([_ for _ in range(1,len(DATAA))], [accuracy[1] for accuracy in accuracies])
+    plt.savefig(f"fig3{classs}.png")
+    plt.show()
+
+
+def partition (elements, weights):
+    print(weights)
+    all_count = len(elements)
+    indexes = [index for index in range(all_count)]
+    parts = []
+    if math.isclose(sum(weights), 1):
+        for weight in weights:
+            count = round(weight * all_count)
+            part = []
+            for _ in range(count):
+                element = random.choice(indexes)
+                part.append(element)
+                indexes.remove(element)
+            parts.append(part)
+        print(sum(len(part) for part in parts))
+        return parts
+    return partition(elements, weights + [1-sum(weights)])
+
 
 
 if __name__ == "__main__":
 
-    compare()
-    compare2()
+    #compare()
+    #compare2()
+    #compare3("plagiat")
+    #compare3("non_plagiat")
+
+    elements = [i for i in range(15)]
+    print(partition(elements, [0.6]))
+    print(sum([0.6,0.3,0.1]))

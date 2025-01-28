@@ -22,8 +22,7 @@ class NaiveBayesClassifier (Classifier):
             self.word_probabilities = compute_word_probabilities_tfidf(filtered_labels, featurizer, matrix)"""
     def predict(self, tokens):
         #initialize scores for all classes(plagiat + non_plagiat)
-        scores = {cls: np.log(self.class_priors[cls]) for cls in self.class_priors}
-
+        scores = {cls: np.log(self.class_priors[cls]) for cls in self.class_priors if self.class_priors[cls] > 0}
         #for each token we calculate log of likelihoods for each class
         for token in tokens:
             if token in self.word_probabilities:
@@ -66,8 +65,8 @@ def compute_word_probabilities(filtered_labels: Dict[str, str], featurizer, matr
         total_plagiat = totals[index, 1]
         #the likelihoods of each word == P(word/class) 
         word_totals[word] = {
-            "plagiat": (total_plagiat + 1) / total_plagiat_words if total > 0 else 0,
-            "non_plagiat": (total - total_plagiat + 1) / total_non_plagiat_words
+            "plagiat": (total_plagiat + 1) / total_plagiat_words if total > 0 and total_plagiat_words > 0 else 0,
+            "non_plagiat": (total - total_plagiat + 1) / total_non_plagiat_words if total_non_plagiat_words > 0 else 0
         }
 
     return word_totals
