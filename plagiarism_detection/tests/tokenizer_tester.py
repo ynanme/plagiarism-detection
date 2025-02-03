@@ -6,6 +6,8 @@ python3 -m tests.tokenizer_tester
 
 import nltk
 from nltk.tokenize import word_tokenize
+from sklearn.feature_extraction.text import CountVectorizer
+from nltk.corpus import stopwords
 
 from util.util import read_files
 from model.tokenizers.tokenizer import Tokenizer
@@ -13,20 +15,21 @@ from model.tokenizers.tokenizer import Tokenizer
 
 DIRECTORY = "data/1"
 OUR_TOKENIZER = Tokenizer()
+THEIR_TOKENIZER = CountVectorizer(stop_words=stopwords.words('english')).build_tokenizer()
 
 
 def test_tokenize ():
-    print("[Tests] [Tokenizer::test_tokenize] [launched]")
+    print("[Tests] [Tokenizer::tokenize] [launched]")
     texts = read_files(DIRECTORY)
     for text in texts:
         ours = OUR_TOKENIZER.tokenize(text)
-        theirs = word_tokenize(text)
+        theirs = [token.lower() for token in THEIR_TOKENIZER(text)]
         if ours != theirs:
             compare_tokens_results(ours, theirs)
-            #compare_tokens_results_too(ours, theirs)
-            print("[Tests] [Tokenizer::test_tokenize] [failed]")
+            compare_tokens_results_too(ours, theirs)
+            print("[Tests] [Tokenizer::tokenize] [failed]")
             return False
-    print("[Tests] [Tokenizer::test_tokenize] [passed]")
+    print("[Tests] [Tokenizer::tokenize] [passed]")
     return True
 
 
@@ -50,4 +53,6 @@ def compare_tokens_results_too (ours, theirs):
 
 if __name__ == "__main__":
 
+    print('a' in stopwords.words('english'))
+    print('is' in stopwords.words('english'))
     test_tokenize()

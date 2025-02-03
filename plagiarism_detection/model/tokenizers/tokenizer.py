@@ -26,7 +26,7 @@ class Tokenizer:
         print("tokens without stopwords",filtered_sentence)
         print("and" in filtered_sentence)
         """
-        return tokens
+        return filtered_sentence
 
 
 
