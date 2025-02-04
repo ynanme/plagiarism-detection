@@ -8,10 +8,10 @@ from model.tokenizers.tokenizer import Tokenizer
 
 # Term freaquency: frequency of all words within a document
 # Inverse document Frequency: inverse of how often a word appears accross al documents 
-class TfidfFeaturizer:
-    def __init__(self):
-        self.vocabulary = {}  
-        self.tokenizer = Tokenizer()  
+class TfidfFeaturizer (Featurizer):
+
+    def __init__(self, tokenizer=Tokenizer()):
+        super().__init__(tokenizer)
         self.tokenized_docs = []  
         self.idf_values = {} #stores the calculated idf values
 

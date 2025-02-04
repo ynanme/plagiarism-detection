@@ -38,8 +38,8 @@ def evaluate_detectors (detectors, data, expected):
 
 
 DIRECTORY = "data/1"
-#DATA = read_files(DIRECTORY)
-#CATEGORIES = load_labels(DIRECTORY)
+DATA = read_files(DIRECTORY)
+CATEGORIES = load_labels(DIRECTORY)
 
 
 def compare ():
@@ -104,33 +104,65 @@ def compare3 (classs):
     plt.show()
 
 
-def partition (elements, weights):
-    print(weights)
-    all_count = len(elements)
-    indexes = [index for index in range(all_count)]
-    parts = []
+def partition (elements, weights, partition_on_indexes=False):
     if math.isclose(sum(weights), 1):
+        all_count = len(elements)
+        elements_ = elements.copy() if not partition_on_indexes else [index for index in range(all_count)]
+        parts = []
         for weight in weights:
             count = round(weight * all_count)
             part = []
             for _ in range(count):
-                element = random.choice(indexes)
-                part.append(element)
-                indexes.remove(element)
-            parts.append(part)
-        print(sum(len(part) for part in parts))
+                if len(elements_) > 0:
+                    element = random.choice(elements_)
+                    part.append(element)
+                    elements_.remove(element)
+            if len(part) > 0:
+                parts.append(part)
         return parts
     return partition(elements, weights + [1-sum(weights)])
+
+
+def draw_plot (
+    X, Ys,
+    plot_labels = [], axis_labels = ["X", "Y"], title = "Plots",
+    show_figure = True, saving_figure_path = None
+):
+    plt.figure()
+    if plot_labels == []:
+        plot_labels = ["Plot " + str(i) for i in range(1,len(Xs)+1)]
+    for Y, label in zip(Ys, plot_labels):
+        plt.plot(X, Y, label=label)
+    plt.xlabel(axis_labels[0])
+    plt.ylabel(axis_labels[1])
+    plt.title(title)
+    plt.legend()
+    if saving_figure_path is not None:
+        plt.savefig(saving_figure_path)
+    if show_figure:
+        plt.show()
 
 
 
 if __name__ == "__main__":
 
-    #compare()
-    #compare2()
-    #compare3("plagiat")
-    #compare3("non_plagiat")
+    compare()
+    compare2()
+    compare3("plagiat")
+    compare3("non_plagiat")
 
+    """
     elements = [i for i in range(15)]
-    print(partition(elements, [0.6]))
-    print(sum([0.6,0.3,0.1]))
+    elements = [47,20,1,-5,45]
+    print(partition(elements, [0.3,0.4]))
+    print(elements)
+    
+
+    n, m, a, b = 3, 10, -4, 15
+    draw_plot(
+        [[random.randint(a,b) for _ in range(m)] for _ in range(n)],
+        [[random.randint(a,b) for _ in range(m)] for _ in range(n)],
+        ["le renard", "le loup", "le lièvre"], ["la vie", "la mort"], "Les animaux",
+        True, "test"
+    )
+    """

@@ -3,12 +3,13 @@ from collections import Counter
 from typing import List
 
 from model.tokenizers.tokenizer import Tokenizer
+from model.featurizers.featurizer import Featurizer
 
 
-class CountVectorFeaturizer:
-    def __init__(self):
-        self.vocabulary = {}  #stores vocabulary => index : token
-        self.tokenizer = Tokenizer() 
+class CountVectorFeaturizer (Featurizer):
+
+    def __init__(self, tokenizer=Tokenizer()):
+        super().__init__(tokenizer)
         self.tokenized_docs = [] #stores tokenized docs to optimise space and code 
 
     def fit(self, documents: List[str]) -> None:
