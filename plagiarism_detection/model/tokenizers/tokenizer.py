@@ -1,12 +1,11 @@
-import re
 from nltk.corpus import stopwords
+import re
+from typing import List
+from charset_normalizer import from_path
 
 
+# In[2]:
 class Tokenizer:
-
-    def __init__ (self, stop_words=None, lemmatizer=None):
-        self.stop_words = stop_words
-        self.lemmatizer = lemmatizer
 
     def tokenize(self, text):
         #pattens for respectively numbers, words and punctuation 
@@ -18,7 +17,7 @@ class Tokenizer:
         
         tokens = pattern.findall(text)  #extract all tokens from the input text that matches the pattern
         
-        stop_words = self.stop_words if self.stop_words is not None else set(stopwords.words('english'))
+        stop_words = set(stopwords.words('english'))
         filtered_sentence = []
         
         for w in tokens:
@@ -30,8 +29,6 @@ class Tokenizer:
         print("tokens without stopwords",filtered_sentence)
         print("and" in filtered_sentence)
         """
-        if self.lemmatizer is not None:
-            return self.lemmatizer(filtered_sentence)
         return filtered_sentence
 
 
