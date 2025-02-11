@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 
 class Classifier (ABC):
 
-    def __init__ (self):
+    def __init__ (self, classes_count=0):
         self.class_priors = {}
 
     """
