@@ -22,7 +22,7 @@ class PlagiarismDetector:
     def trainn (self, texts, categories):
         #self.featurizer.fit(texts)
         #print(np.array(list(categories.values())))
-        self.classifier.fit(self.featurizer.fit_transform(texts), np.array(list(categories.values())))
+        self.classifier.fit(self.featurizer.fit_transform(texts), np.array(categories))
 
     def classify (self, text):
         tokens = self.tokenizer.tokenize(text)
@@ -39,12 +39,12 @@ class PlagiarismDetector:
 
     def evaluate (self, texts, categories):
         y_computed = [self.classify(text) for text in texts]
-        corrects = sum(1 for computed, expected in zip(y_computed, categories.values()) if computed == expected)
+        corrects = sum(1 for computed, expected in zip(y_computed, categories) if computed == expected)
         return corrects / len(categories)
 
     def evaluatee (self, texts, categories):
         y_computed = [self.classifyy(text) for text in texts]
-        corrects = sum(1 for computed, expected in zip(y_computed, categories.values()) if computed == expected)
+        corrects = sum(1 for computed, expected in zip(y_computed, categories) if computed == expected)
         return corrects / len(categories)
 
     def interpret (self, classification):

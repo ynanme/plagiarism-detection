@@ -27,7 +27,7 @@ class CountVectorFeaturizer (Featurizer):
 
         # Initialize a matrix for the count vectors
         count_matrix = np.zeros((len(documents), len(self.vocabulary)), dtype=int)
-
+        print(count_matrix.shape)
         # Fill the matrix with token frequencies based on the vocabulary
         for i, tokens in enumerate(self.tokenized_docs): #for each token of each document, if in vocab then we inc that cell in the matrix
             for token in tokens:

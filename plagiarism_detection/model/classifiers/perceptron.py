@@ -25,6 +25,7 @@ class PerceptronClassifier (Classifier):
                     
 
     def predict(self, matrix):
+        print("here ", matrix.shape, self.weights.shape)
         z = np.dot(matrix, self.weights) + self.bias
         #print("linear_output", np.sign(linear_output))
         predictions = np.sign(z)

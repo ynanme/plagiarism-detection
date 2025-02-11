@@ -18,7 +18,7 @@ from experimentations.experiment_manager import ExperimentManager
 
 
 def map_value(value: str) -> str:
-    return 'plagiat' if value in ['heavy', 'cut'] else 'non_plagiat'
+    return 1 if value in ['heavy', 'cut', 'light'] else 0
 
 def load_labels(folder_path: str) -> Dict[str, str]:
     expected_results = pd.read_csv(os.path.join(folder_path, "file_information.csv"), sep=",")
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     student__ = ExperimentManager(DETECTORS__, NAMES__, data, RESULTS_DIRECTORY)
     inspector = ExperimentManager(DETECTORS_PREPROCESSING, NAMES_PREPROCESSING, data, RESULTS_DIRECTORY)
 
-    #experiment_on_learning(student)
+    experiment_on_learning(student)
     #experiment_on_classes(student)
     #experiment_on_preprocessing(inspector)
 

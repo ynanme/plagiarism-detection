@@ -22,7 +22,8 @@ class NaiveBayesClassifier (Classifier):
             self.word_probabilities = compute_word_probabilities_tfidf(filtered_labels, featurizer, matrix)"""
     def predict(self, tokens):
         #initialize scores for all classes(plagiat + non_plagiat)
-        scores = {cls: np.log(self.class_priors[cls]) for cls in self.class_priors if self.class_priors[cls] > 0}
+        scores = {cls: np.log(self.class_priors[cls]) for cls in self.class_priors}
+
         #for each token we calculate log of likelihoods for each class
         for token in tokens:
             if token in self.word_probabilities:
@@ -35,29 +36,28 @@ class NaiveBayesClassifier (Classifier):
 
 
 def compute_class_priors(filtered_labels):
+    print("wtf", filtered_labels)
     total_files = len(filtered_labels)
-    plagiat_files = sum(1 for v in filtered_labels.values() if v == "plagiat") #number or plagiat files
-    #print(plagiat_files, total_files)
+    plagiat_files = np.sum(filtered_labels, where=1)
+    #print("plagiat_files", plagiat_files) 
     return {
         "plagiat": plagiat_files / total_files, #probability of a file been plagiat P(plagiat)
         "non_plagiat": 1 - (plagiat_files / total_files) #probability of a file been non plagiat P(non_plagiat)
     }
 
-def compute_word_probabilities(filtered_labels: Dict[str, str], featurizer, matrix: np.ndarray) -> Dict[str, Dict[str, float]]:
-    
+def compute_word_probabilities(filtered_labels, featurizer, matrix: np.ndarray) -> Dict[str, Dict[str, float]]:
+    print(filtered_labels)
     totals = np.zeros((len(featurizer.vocabulary), 2)) #matrix that's gonna contain the total occurence of a word in all docs, and in plagiat docs
-    for file_name, row in zip(filtered_labels.keys(), matrix):
+    print("the zip", list(zip(filtered_labels, matrix)))
+    for file_name, row in zip(filtered_labels, matrix):
         for word, index in featurizer.vocabulary.items():
             totals[index, 0] += row[index] # Add the word's count from the feature matrix to the total counts.
-            if filtered_labels[file_name] == 'plagiat':
+            print("here", file_name, len(filtered_labels))
+            if filtered_labels[file_name] == 1:
                 totals[index, 1] += row[index] #if the file is plagiat then add the count to the second column
 
-    """print(matrix)
-    print(filtered_labels)
-    print([filtered_labels[file_name] == 'plagiat' for file_name in filtered_labels.keys()])
-    print([filtered_labels[file_name] == 'non_plagiat' for file_name in filtered_labels.keys()])"""
-    total_plagiat_words = matrix[[filtered_labels[file_name] == 'plagiat' for file_name in filtered_labels.keys()]].sum().sum()
-    total_non_plagiat_words = matrix[[filtered_labels[file_name] == 'non_plagiat' for file_name in filtered_labels.keys()]].sum().sum()
+    total_plagiat_words = matrix[[filtered_labels[file_name] == 1 for file_name in filtered_labels]].sum().sum()
+    total_non_plagiat_words = matrix[[filtered_labels[file_name] == 0 for file_name in filtered_labels]].sum().sum()
 
     word_totals = {}
     for word, index in featurizer.vocabulary.items():
@@ -65,8 +65,8 @@ def compute_word_probabilities(filtered_labels: Dict[str, str], featurizer, matr
         total_plagiat = totals[index, 1]
         #the likelihoods of each word == P(word/class) 
         word_totals[word] = {
-            "plagiat": (total_plagiat + 1) / total_plagiat_words if total > 0 and total_plagiat_words > 0 else 0,
-            "non_plagiat": (total - total_plagiat + 1) / total_non_plagiat_words if total_non_plagiat_words > 0 else 0
+            "plagiat": (total_plagiat + 1) / total_plagiat_words if total > 0 else 0,
+            "non_plagiat": (total - total_plagiat + 1) / total_non_plagiat_words
         }
 
     return word_totals
@@ -76,7 +76,7 @@ def compute_word_probabilities_tfidf(filtered_labels: Dict[str, str], featurizer
 
     for file_name, row in zip(filtered_labels.keys(), matrix):
         for word, index in featurizer.vocabulary.items():
-            if filtered_labels[file_name] == 'plagiat':
+            if filtered_labels[file_name] == 0:
                 totals[index, 1] += row[index]
             else:
                 totals[index, 0] += row[index]
