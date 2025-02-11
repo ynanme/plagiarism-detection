@@ -48,23 +48,24 @@ class NaiveBayesClassifier:
 
 def compute_class_priors(filtered_labels):
     total_files = len(filtered_labels)
-    plagiat_files = sum(1 for v in filtered_labels.values() if v == "plagiat") #number or plagiat files
+    plagiat_files = np.sum(filtered_labels, where=1)
+    #print("plagiat_files", plagiat_files) 
     return {
         "plagiat": plagiat_files / total_files, #probability of a file been plagiat P(plagiat)
         "non_plagiat": 1 - (plagiat_files / total_files) #probability of a file been non plagiat P(non_plagiat)
     }
 
-def compute_word_probabilities(filtered_labels: Dict[str, str], featurizer, matrix: np.ndarray) -> Dict[str, Dict[str, float]]:
+def compute_word_probabilities(filtered_labels, featurizer, matrix: np.ndarray) -> Dict[str, Dict[str, float]]:
     
     totals = np.zeros((len(featurizer.vocabulary), 2)) #matrix that's gonna contain the total occurence of a word in all docs, and in plagiat docs
-    for file_name, row in zip(filtered_labels.keys(), matrix):
+    for file_name, row in zip(filtered_labels, matrix):
         for word, index in featurizer.vocabulary.items():
             totals[index, 0] += row[index] # Add the word's count from the feature matrix to the total counts.
-            if filtered_labels[file_name] == 'plagiat':
+            if filtered_labels[file_name] == 1:
                 totals[index, 1] += row[index] #if the file is plagiat then add the count to the second column
 
-    total_plagiat_words = matrix[[filtered_labels[file_name] == 'plagiat' for file_name in filtered_labels.keys()]].sum().sum()
-    total_non_plagiat_words = matrix[[filtered_labels[file_name] == 'non_plagiat' for file_name in filtered_labels.keys()]].sum().sum()
+    total_plagiat_words = matrix[[filtered_labels[file_name] == 1 for file_name in filtered_labels]].sum().sum()
+    total_non_plagiat_words = matrix[[filtered_labels[file_name] == 0 for file_name in filtered_labels]].sum().sum()
 
     word_totals = {}
     for word, index in featurizer.vocabulary.items():
