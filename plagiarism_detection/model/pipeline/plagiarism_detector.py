@@ -15,37 +15,23 @@ class PlagiarismDetector:
         self.featurizer = featurizer
         self.set_tools()
 
+    
     def train (self, texts, categories):
-        self.featurizer.fit(texts)
-        self.classifier.fit(categories, self.featurizer, self.featurizer.transform(texts))
-
-    def trainn (self, texts, categories):
         #self.featurizer.fit(texts)
         #print(np.array(list(categories.values())))
         self.classifier.fit(self.featurizer.fit_transform(texts), np.array(categories))
 
-    def classify (self, text):
-        tokens = self.tokenizer.tokenize(text)
-        #features = self.featurizer.fit_transform(tokens)
-        #features = self.featurizer.fit(text)
-        features = self.featurizer.transform(text)
-        #classification = self.classifier.predict(features)
-        classification = self.classifier.predict(tokens)
-        #return self.interpret(classification)
-        return classification
+
     
-    def classifyy (self, text):
+    def classify (self, text):
         return self.classifier.predict(self.featurizer.transform([text]))
 
     def evaluate (self, texts, categories):
         y_computed = [self.classify(text) for text in texts]
+        print("y", y_computed)
         corrects = sum(1 for computed, expected in zip(y_computed, categories) if computed == expected)
         return corrects / len(categories)
 
-    def evaluatee (self, texts, categories):
-        y_computed = [self.classifyy(text) for text in texts]
-        corrects = sum(1 for computed, expected in zip(y_computed, categories) if computed == expected)
-        return corrects / len(categories)
 
     def interpret (self, classification):
         return "no plagiarism" if classification == 0 else "plagiarism"

@@ -32,4 +32,4 @@ class LogisticRegressionClassifier (Classifier):
     def predict(self, matrix):
         z = np.dot(matrix, self.weights) + self.bias
         probabilities = self.sigmoid(z)
-        return (probabilities >= 0.5).astype(int)
+        return (probabilities >= 0.5).astype(int)[0]

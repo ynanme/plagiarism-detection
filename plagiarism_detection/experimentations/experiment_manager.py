@@ -15,19 +15,13 @@ class ExperimentManager ():
     def train_detectors (self, texts, categories):
         #categories = {index: category for index,category in enumerate(categories)}
         for detector in self.detectors.values():
-            try:
-                detector.train(texts, categories)
-            except:
-                detector.trainn(texts, categories)
+            detector.train(texts, categories)
     
     def evaluate_detectors (self, texts, categories):
         #categories = {index: category for index,category in enumerate(categories)}
         accuracies = []
         for detector in self.detectors.values():
-            try:
-                accuracies.append(detector.evaluate(texts, categories))
-            except:
-                accuracies.append(detector.evaluatee(texts, categories))
+            accuracies.append(detector.evaluate(texts, categories))
         return accuracies
 
     def get_indexes (self, count=None):

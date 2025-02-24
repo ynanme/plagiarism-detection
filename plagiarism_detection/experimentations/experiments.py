@@ -88,18 +88,19 @@ NAMES__ = ["NB_TFIDF", "NB_TFIDF_Sk"]
 if __name__ == "__main__":
 
     data = load_data(DATA_DIRECTORY)
+    data[0], data[1] = data[0][:30], data[1][:30]
 
     student = ExperimentManager(DETECTORS, NAMES, data, RESULTS_DIRECTORY)
     student_ = ExperimentManager(DETECTORS_, NAMES_, data, RESULTS_DIRECTORY)
     student__ = ExperimentManager(DETECTORS__, NAMES__, data, RESULTS_DIRECTORY)
     inspector = ExperimentManager(DETECTORS_PREPROCESSING, NAMES_PREPROCESSING, data, RESULTS_DIRECTORY)
 
-    experiment_on_learning(student)
+    #experiment_on_learning(student)
     #experiment_on_classes(student)
     #experiment_on_preprocessing(inspector)
 
-    #experiment_on_learning(student_)
-    #experiment_on_learning(student__)
+    experiment_on_learning(student_)
+    experiment_on_learning(student__)
     #experiment_on_classes(student__)
 
     #experiment_on_learning(student, [5])

@@ -29,4 +29,4 @@ class PerceptronClassifier (Classifier):
         z = np.dot(matrix, self.weights) + self.bias
         #print("linear_output", np.sign(linear_output))
         predictions = np.sign(z)
-        return predictions
+        return predictions[0]
