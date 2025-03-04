@@ -1,20 +1,24 @@
 import os
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from typing import List, Dict
 
 from model.tokenizers.tokenizer import Tokenizer
 from model.tokenizers.lemmatizer import lemmatize
 from model.featurizers.count_vector import CountVectorFeaturizer
+from model.featurizers.tfidf import TfidfFeaturizer
 from model.classifiers.naive_bayes import NaiveBayesClassifier
+from model.classifiers.logistic_regression import LogisticRegressionClassifier
+from model.classifiers.perceptron import PerceptronClassifier
 from model.pipeline.plagiarism_detector import PlagiarismDetector
 from util.util import read_files
 from experimentations.experiment_manager import ExperimentManager
 
 
 def map_value(value: str) -> str:
-    return 'plagiat' if value in ['heavy', 'cut'] else 'non_plagiat'
+    return 1 if value in ['heavy', 'cut', 'light'] else 0
 
 def load_labels(folder_path: str) -> Dict[str, str]:
     expected_results = pd.read_csv(os.path.join(folder_path, "file_information.csv"), sep=",")
@@ -66,14 +70,39 @@ DETECTORS_PREPROCESSING = [
 NAMES_PREPROCESSING = ["NB_CV_SW", "NB_CV_NO_SW", "NB_CV_Lemma"]
 
 
+DETECTORS_ = [
+    PlagiarismDetector(PerceptronClassifier(), CountVectorFeaturizer()),
+    PlagiarismDetector(LogisticRegressionClassifier(), CountVectorFeaturizer())
+]
+NAMES_ = ["Percept_CV", "Logis_CV"]
+
+
+DETECTORS__ = [
+    PlagiarismDetector(NaiveBayesClassifier(), TfidfFeaturizer()),
+    PlagiarismDetector(MultinomialNB(), TfidfVectorizer())
+]
+NAMES__ = ["NB_TFIDF", "NB_TFIDF_Sk"]
+
+
 
 if __name__ == "__main__":
 
     data = load_data(DATA_DIRECTORY)
+    data[0], data[1] = data[0][:30], data[1][:30]
 
     student = ExperimentManager(DETECTORS, NAMES, data, RESULTS_DIRECTORY)
+    student_ = ExperimentManager(DETECTORS_, NAMES_, data, RESULTS_DIRECTORY)
+    student__ = ExperimentManager(DETECTORS__, NAMES__, data, RESULTS_DIRECTORY)
     inspector = ExperimentManager(DETECTORS_PREPROCESSING, NAMES_PREPROCESSING, data, RESULTS_DIRECTORY)
 
     #experiment_on_learning(student)
     #experiment_on_classes(student)
-    experiment_on_preprocessing(inspector)
+    #experiment_on_preprocessing(inspector)
+
+    experiment_on_learning(student_)
+    experiment_on_learning(student__)
+    #experiment_on_classes(student__)
+
+    #experiment_on_learning(student, [5])
+    #experiment_on_classes(student, [5])
+    experiment_on_preprocessing(inspector, [5])

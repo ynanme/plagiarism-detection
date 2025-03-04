@@ -34,6 +34,7 @@ class TfidfFeaturizer (Featurizer):
 
     def transform(self, documents: List[str]) -> np.ndarray:
         tfidf_matrix = np.zeros((len(documents), len(self.vocabulary)))
+        self.tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents]
 
         #for each token:term of each document we calculate tf*idf
         for i, tokens in enumerate(self.tokenized_docs):
@@ -43,7 +44,8 @@ class TfidfFeaturizer (Featurizer):
             for token, count in term_counts.items(): 
                 tf = count / total_terms  # Term frequency
                 idf = self.idf_values.get(token, 0)  # IDF value (default to 0 if missing)
-                tfidf_matrix[i, self.vocabulary[token]] = tf * idf
+                if token in self.vocabulary:
+                    tfidf_matrix[i, self.vocabulary[token]] = tf * idf
 
         return tfidf_matrix
 
