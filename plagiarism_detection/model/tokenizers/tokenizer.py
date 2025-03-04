@@ -6,6 +6,8 @@ from charset_normalizer import from_path
 
 # In[2]:
 class Tokenizer:
+    def __init__(self):
+        self.stop_words = set(stopwords.words('english'))
 
     def tokenize(self, text):
         #pattens for respectively numbers, words and punctuation 
@@ -14,26 +16,26 @@ class Tokenizer:
         """
         text = text.lower() #transforme all the text to lowercase
         pattern = re.compile(token_pattern, re.VERBOSE) #compile the regular expressions
-        
         tokens = pattern.findall(text)  #extract all tokens from the input text that matches the pattern
         
-        stop_words = set(stopwords.words('english'))
-        filtered_sentence = []
-        
-        for w in tokens:
-            if w not in stop_words:
-                filtered_sentence.append(w)
-        """
-        print("tokens",tokens)
-        print("\n")
-        print("tokens without stopwords",filtered_sentence)
-        print("and" in filtered_sentence)
-        """
-        return filtered_sentence
+        filtered_tokens = [token for token in tokens if token not in self.stop_words]
 
+        return filtered_tokens
+    
+    @staticmethod
+    def read_file(file_path):
+        #TODO: fix CharsetMatch problem
+        result = from_path(file_path).best() #detects best encoding for the file
+        if result:
+            return str(result)  
+        else:
+            raise ValueError(f"Could not detect encoding for file: {file_path}")
+    
+    @staticmethod
+    def generate_ngrams(tokens, ngram):
 
-
-if __name__ == "__main__":
-
-    tzer = Tokenizer()
-    print(tzer.tokenize("Il s'agit de tokenizer cette phrase ; could you ?"))
+        ngrams = []
+        for n in range(ngram[0], ngram[1] + 1):
+            ngrams += [" ".join(tokens[i:i + n]) for i in range(len(tokens) - n + 1)]
+            #print(ngrams)
+        return ngrams
