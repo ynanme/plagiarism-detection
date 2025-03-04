@@ -3,15 +3,18 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.tree import DecisionTreeClassifier
 from typing import List, Dict
 
 from model.tokenizers.tokenizer import Tokenizer
-from model.tokenizers.lemmatizer import lemmatize
+#from model.tokenizers.lemmatizer import lemmatize
 from model.featurizers.count_vector import CountVectorFeaturizer
 from model.featurizers.tfidf import TfidfFeaturizer
 from model.classifiers.naive_bayes import NaiveBayesClassifier
 from model.classifiers.logistic_regression import LogisticRegressionClassifier
 from model.classifiers.perceptron import PerceptronClassifier
+from model.classifiers.ada_boost import AdaBoost
 from model.pipeline.plagiarism_detector import PlagiarismDetector
 from util.util import read_files
 from experimentations.experiment_manager import ExperimentManager
@@ -33,19 +36,28 @@ def load_data (directory):
         assert labels[file_name] == category
     return [texts, categories]
 
+def ada_boost_labels_mapping_function (label):
+    if label == 1:
+        return -1
+    if label == 0:
+        return 1
+    if label == -1:
+        return 1
+    return 0
+
 
 def experiment_on_learning (scientist, repeats=[1]):
     for repeat in repeats:
-        scientist.run_on_all(repeat=repeat)
-        scientist.run_on_trained(repeat=repeat)
+        #scientist.run_on_all(repeat=repeat)
+        #scientist.run_on_trained(repeat=repeat)
         scientist.run_on_untrained(repeat=repeat)
 
 def experiment_on_classes (scientist, repeats=[1]):
     for repeat in repeats:
-        scientist.run_on_all(filter_on_testing="plagiat", repeat=repeat)
-        scientist.run_on_all(filter_on_testing="non_plagiat", repeat=repeat)
-        scientist.run_on_trained(filter_on_testing="plagiat", repeat=repeat)
-        scientist.run_on_trained(filter_on_testing="non_plagiat", repeat=repeat)
+        #scientist.run_on_all(filter_on_testing="plagiat", repeat=repeat)
+        #scientist.run_on_all(filter_on_testing="non_plagiat", repeat=repeat)
+        #scientist.run_on_trained(filter_on_testing="plagiat", repeat=repeat)
+        #scientist.run_on_trained(filter_on_testing="non_plagiat", repeat=repeat)
         scientist.run_on_untrained(filter_on_testing="plagiat", repeat=repeat)
         scientist.run_on_untrained(filter_on_testing="non_plagiat", repeat=repeat)
 
@@ -61,14 +73,14 @@ DETECTORS = [
     PlagiarismDetector(MultinomialNB(), CountVectorizer())
 ]
 NAMES = ["NB_CV", "NB_CV_Sk"]
-
+"""
 DETECTORS_PREPROCESSING = [
     PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer()),
     PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(Tokenizer(stop_words=[]))),
     PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(Tokenizer(lemmatizer=lemmatize)))
 ]
 NAMES_PREPROCESSING = ["NB_CV_SW", "NB_CV_NO_SW", "NB_CV_Lemma"]
-
+"""
 
 DETECTORS_ = [
     PlagiarismDetector(PerceptronClassifier(), CountVectorFeaturizer()),
@@ -83,6 +95,12 @@ DETECTORS__ = [
 ]
 NAMES__ = ["NB_TFIDF", "NB_TFIDF_Sk"]
 
+DETECTORS___ = [
+    PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CountVectorFeaturizer()),
+    PlagiarismDetector(AdaBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1)), CountVectorizer())
+]
+NAMES___ = ["Ada", "Ada_Sk"]
+
 
 
 if __name__ == "__main__":
@@ -93,16 +111,19 @@ if __name__ == "__main__":
     student = ExperimentManager(DETECTORS, NAMES, data, RESULTS_DIRECTORY)
     student_ = ExperimentManager(DETECTORS_, NAMES_, data, RESULTS_DIRECTORY)
     student__ = ExperimentManager(DETECTORS__, NAMES__, data, RESULTS_DIRECTORY)
-    inspector = ExperimentManager(DETECTORS_PREPROCESSING, NAMES_PREPROCESSING, data, RESULTS_DIRECTORY)
+    student___ = ExperimentManager(DETECTORS___, NAMES___, data, RESULTS_DIRECTORY)
+    #inspector = ExperimentManager(DETECTORS_PREPROCESSING, NAMES_PREPROCESSING, data, RESULTS_DIRECTORY)
 
     #experiment_on_learning(student)
     #experiment_on_classes(student)
     #experiment_on_preprocessing(inspector)
 
-    experiment_on_learning(student_)
-    experiment_on_learning(student__)
+    #experiment_on_learning(student_)
+    #experiment_on_learning(student__)
+    experiment_on_learning(student___)
     #experiment_on_classes(student__)
+    #experiment_on_classes(student___)
 
     #experiment_on_learning(student, [5])
     #experiment_on_classes(student, [5])
-    experiment_on_preprocessing(inspector, [5])
+    #experiment_on_preprocessing(inspector, [5])
