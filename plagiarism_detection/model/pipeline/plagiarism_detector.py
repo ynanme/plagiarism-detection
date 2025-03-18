@@ -30,7 +30,7 @@ class PlagiarismDetector:
         y_computed = [self.classify(text) for text in texts]
         print("y", y_computed)
         corrects = sum(1 for computed, expected in zip(y_computed, categories) if computed == expected)
-        return corrects / len(categories)
+        return corrects / len(categories) if len(categories) > 0 else 1
 
 
     def interpret (self, classification):

@@ -22,8 +22,6 @@ class Tokenizer:
         pattern = re.compile(token_pattern, re.VERBOSE) #compile the regular expressions
         tokens = pattern.findall(text)  #extract all tokens from the input text that matches the pattern
         
-        filtered_tokens = [token for token in tokens if token not in self.stop_words]
-
         stop_words = set(stopwords.words('english')) if self.stop_words is None else self.stop_words
         filtered_sentence = []
         
