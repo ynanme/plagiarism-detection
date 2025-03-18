@@ -6,12 +6,12 @@ from charset_normalizer import from_path
 
 # In[2]:
 class Tokenizer:
-    def __init__(self):
+    def __init__(self, lemmatizer=None):
         self.stop_words = set(stopwords.words('english'))
-
-    def __init__ (self, stop_words=None, lemmatizer=None):
-        self.stop_words = stop_words
         self.lemmatizer = lemmatizer
+
+    #def __init__ (self, stop_words=None, lemmatizer=None):
+     #   self.stop_words = stop_words
 
     def tokenize(self, text):
         #pattens for respectively numbers, words and punctuation 
@@ -22,9 +22,8 @@ class Tokenizer:
         pattern = re.compile(token_pattern, re.VERBOSE) #compile the regular expressions
         tokens = pattern.findall(text)  #extract all tokens from the input text that matches the pattern
         
-<<<<<<< HEAD
         filtered_tokens = [token for token in tokens if token not in self.stop_words]
-=======
+
         stop_words = set(stopwords.words('english')) if self.stop_words is None else self.stop_words
         filtered_sentence = []
         
@@ -40,7 +39,6 @@ class Tokenizer:
         if self.lemmatizer is not None:
             return self.lemmatizer(filtered_sentence)
         return filtered_sentence
->>>>>>> 5bba5f2ea323a397a004e0a56dbc70afcf9ac44d
 
         return filtered_tokens
     
