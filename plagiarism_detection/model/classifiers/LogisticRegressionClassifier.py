@@ -1,11 +1,12 @@
 import numpy as np
 
 class LogisticRegressionClassifier:
-    def __init__(self, learning_rate=0.00001, epochs=300):
+    def __init__(self, learning_rate=0.01, epochs=100, threshold=0.5):
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.weights = None
         self.bias = 0
+        self.threshold = threshold
 
     def sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
@@ -27,5 +28,6 @@ class LogisticRegressionClassifier:
     def predict(self, matrix):
         z = np.dot(matrix, self.weights) + self.bias
         probabilities = self.sigmoid(z)
-        print(probabilities)
-        return (probabilities >= 0.71).astype(int)
+        #print(probabilities)
+        return (probabilities >= self.threshold).astype(int)
+

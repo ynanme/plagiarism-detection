@@ -16,16 +16,18 @@ class TfidfFeaturizer:
     def fit(self, documents: List[str]) -> None:
         nb_doc = len(documents) 
         token_counter = Counter()  
+
         tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents]
         
         for tokens in tokenized_docs:
-            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1,3])
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1,1])
             token_counter.update(set(ngrams)) #we only count each occurence of a token in a doc once, in other terms the number of times a token appears in all docs
+        
         self.vocabulary = {token: idx for idx, (token, _) in enumerate(token_counter.most_common())}
 
         #Calculate the idf values of each token, log of the number of docs devided by the number of docs that contain the term (+1 to avoid 0 values)
         self.idf_values = {
-            token: np.log((1 + nb_doc) / (1 + doc_freq)) + 1
+            token: np.log((nb_doc) / (1 + doc_freq)) + 1
             for token, doc_freq in token_counter.items()
         }
 
@@ -35,7 +37,7 @@ class TfidfFeaturizer:
 
         #for each token:term of each document we calculate tf*idf
         for i, tokens in enumerate(tokenized_docs):
-            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1, 3])
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1, 1])
             term_counts = Counter(ngrams) #transformation to a counter
             total_terms = len(ngrams)
 

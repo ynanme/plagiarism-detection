@@ -1,67 +1,53 @@
 import numpy as np
-from typing import Dict
-
 
 class NaiveBayesClassifier:
     def __init__(self):
-        self.class_priors = {}  # P(Class)
-        self.word_probabilities = {}  # P(Word | Class)
+        self.class_priors = None
+        self.word_probabilities = None
+        self.vocab_size = None
 
-    def fit(self, filtered_labels: Dict[str, int], featurizer, matrix: np.ndarray):
+    def fit(self, matrix, filtered_labels):
+        self.vocab_size = matrix.shape[1]
+        self.class_priors = self.compute_class_priors(matrix, filtered_labels)
+        self.word_probabilities = self.compute_word_probabilities(matrix, filtered_labels)
 
-        self.class_priors = self.compute_class_priors(filtered_labels)
-        self.word_probabilities = self.compute_word_probabilities(filtered_labels, featurizer, matrix)
+    def predict(self, matrix):
+        if isinstance(matrix, list):
+            matrix = np.array([matrix])
 
-    def predict(self, tokens):
+        total_files = matrix.shape[0]
+        nb_classes = len(self.class_priors)
 
-        scores = {cls: np.log(self.class_priors[cls]) for cls in self.class_priors}
+        log_probs = np.zeros((total_files, nb_classes))
 
-        # Compute log-likelihood for each class
-        for token in tokens:
-            if token in self.word_probabilities:
-                for cls in scores:
-                    prob = self.word_probabilities[token].get(cls, 1 / (sum(self.word_probabilities[word][cls] for word in self.word_probabilities) + len(self.word_probabilities)))
-                    scores[cls] += np.log(prob)
+        for cls in range(nb_classes):
+            log_probs[:, cls] = np.log(self.class_priors[cls])
 
-        return max(scores, key=scores.get)
+            for i in range(total_files):
+                log_probs[i, cls] += np.sum(matrix[i] * np.log(self.word_probabilities[cls]))
 
-    @staticmethod
-    def compute_class_priors(filtered_labels: np.ndarray) -> Dict[str, float]:
-
-        total_files = len(filtered_labels)
-        plagiat_files = np.sum(filtered_labels) 
-        non_plagiat_files = total_files - plagiat_files  
-
-        return {
-            "plagiat": plagiat_files / total_files if total_files > 0 else 0,
-            "non_plagiat": non_plagiat_files / total_files if total_files > 0 else 0
-        }
-
+        return np.argmax(log_probs, axis=1)
 
     @staticmethod
-    def compute_word_probabilities(filtered_labels: np.ndarray, featurizer, matrix: np.ndarray) -> Dict[str, Dict[str, float]]:
-        vocabulary_size = len(featurizer.vocabulary)
-        totals = np.zeros((vocabulary_size, 2))  
-        for i, row in enumerate(matrix):
-            for word, index in featurizer.vocabulary.items():
-                totals[index, 0] += row[index]  
-                if filtered_labels[i]  == 1:  
-                    totals[index, 1] += row[index]
+    def compute_class_priors(matrix, filtered_labels):
+        total_files = matrix.shape[0]
+        num_classes = len(np.unique(filtered_labels))
 
-        # Compute total word occurrences per class
-        total_plagiat_words = totals[:, 1].sum()
-        total_non_plagiat_words = totals[:, 0].sum() - total_plagiat_words
+        class_priors = np.zeros(num_classes)
+        for cls in range(num_classes):
+            class_priors[cls] = np.sum(filtered_labels == cls) / total_files
 
-        word_totals = {}
-        for word, index in featurizer.vocabulary.items():
-            total = totals[index, 0]
-            total_plagiat = totals[index, 1]
-            
-            # Apply Laplace Smoothing to avoid zero probabilities
-            word_totals[word] = {
-                "plagiat": (total_plagiat + 1) / (total_plagiat_words + vocabulary_size),
-                "non_plagiat": (total - total_plagiat + 1) / (total_non_plagiat_words + vocabulary_size)
-            }
+        return class_priors
+    
+    @staticmethod
+    def compute_word_probabilities(matrix, filtered_labels):
+        vocab_size = matrix.shape[1]
+        word_probabilities = np.zeros((len(np.unique(filtered_labels)), vocab_size))
 
-        return word_totals
+        for cls in range(len(np.unique(filtered_labels))):
+            word_cls = matrix[filtered_labels == cls] 
+            word_counts = np.sum(word_cls, axis=0)
+            total_count = np.sum(word_counts) 
+            word_probabilities[cls] = (word_counts + 1) / (total_count + vocab_size)
 
+        return word_probabilities

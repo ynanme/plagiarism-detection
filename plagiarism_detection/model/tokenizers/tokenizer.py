@@ -4,16 +4,10 @@ from typing import List
 from charset_normalizer import from_path
 
 
-# In[2]:
 class Tokenizer:
 
-    DEFAULT_STOPWORDS = set(stopwords.words('english'))
-
-    def __init__(self):
+    def __init__(self, lemmatizer=None):
         self.stop_words = set(stopwords.words('english'))
-
-    def __init__ (self, stop_words=None, lemmatizer=None):
-        self.stop_words = stop_words
         self.lemmatizer = lemmatizer
 
     def tokenize(self, text):
@@ -31,17 +25,11 @@ class Tokenizer:
         for w in tokens:
             if w not in stop_words:
                 filtered_sentence.append(w)
-        """
-        print("tokens",tokens)
-        print("\n")
-        print("tokens without stopwords",filtered_sentence)
-        print("and" in filtered_sentence)
-        """
+
         if self.lemmatizer is not None:
             return self.lemmatizer(filtered_sentence)
         return filtered_sentence
 
-        return filtered_tokens
     
     @staticmethod
     def read_file(file_path):

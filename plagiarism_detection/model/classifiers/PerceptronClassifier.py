@@ -1,8 +1,7 @@
 import numpy as np
 
 class PerceptronClassifier:
-    def __init__(self, learning_rate=0.00000000001, epochs=100, tolerance=1e-4, patience=5):
-    #def __init__(self, learning_rate=0.01, epochs=100, tolerance=1e-4, patience=5):
+    def __init__(self, learning_rate=0.00000000001, epochs=100, patience=5, tolerance=1e-4):
         self.learning_rate = learning_rate
         self.epochs = epochs
         self.weights = None
@@ -39,7 +38,7 @@ class PerceptronClassifier:
                 no_improvement_count = 0  
 
             if no_improvement_count >= self.patience:
-                print(f"Early stopping at epoch {epoch+1}")
+                #print(f"Early stopping at epoch {epoch+1}")
                 break 
 
             best_loss = avg_loss  

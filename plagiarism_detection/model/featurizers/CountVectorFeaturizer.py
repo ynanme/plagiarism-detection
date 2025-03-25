@@ -3,7 +3,6 @@ import numpy as np
 from collections import Counter
 from typing import List
 from model.tokenizers.tokenizer import Tokenizer
-from sklearn.feature_extraction.text import CountVectorizer
 
 
 class CountVectorFeaturizer:
@@ -17,7 +16,7 @@ class CountVectorFeaturizer:
         self.tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents] 
         
         for tokens in self.tokenized_docs:
-            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1,2])
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1,1])
             token_counter.update(set(ngrams))
         
         self.vocabulary = {token: idx for idx, (token, _) in enumerate(token_counter.most_common())}
@@ -27,8 +26,8 @@ class CountVectorFeaturizer:
         count_matrix = np.zeros((len(documents), len(self.vocabulary)), dtype=int)
 
         for i, tokens in enumerate(tokenized_docs):
-            tokens = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1, 2])
-            for token in tokens:
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1, 1])
+            for token in ngrams:
                 idx = self.vocabulary.get(token)
                 if idx is not None:
                     count_matrix[i, idx] += 1
