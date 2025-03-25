@@ -1,0 +1,60 @@
+### DATA ###
+
+DATA_DIRECTORY = "data/1"
+
+
+### GRAPHIC CONFIGURATIONS ###
+
+TITLE = "PLAGIARISM DETECTION"
+GEOMETRY = "800x800"
+
+
+#### DETECTORS CONFIGURATIONS ###
+
+CLASSIFIER_REF, CLASSIFIER_DES = "classifier", "Classifier"
+NAIVE_BAYES_REF, NAIVE_BAYES_DES = "naive_bayes", "Naive Bayes"
+LOGISTIC_REF, LOGISTIC_DES = "logistic_regression", "Logistic Regression"
+PERCEPTRON_REF, PERCEPTRON_DES = "perceptron", "Perceptron"
+
+DECORATOR_REF, DECORATOR_DES = "decorator", "Decorator"
+NONE_REF, NONE_DES = "none", "None"
+ADA_BOOST_REF, ADA_BOOST_DES = "ada_boost", "AdaBoost"
+RANDOM_FOREST_REF, RANDOM_FOREST_DES = "random_forest", "Random Forest"
+
+EPOCHS_REF, EPOCHS_DES = "epochs", "Epochs / Estimators Count"
+LEARNING_RATE_REF, LEARNING_RATE_DES = "learning_rate", "Learning Rate"
+THRESHOLD_REF, THRESHOLD_DES = "threashold", "Threshold"
+MAX_DEPTH_REF, MAX_DEPTH_DES = "max_depth", "Max Depth"
+
+CRITERION_REF, CRITERION_DES = "criterion", "Criterion"
+ENTROPY_REF, ENTROPY_DES = "entropy", "Entropy"
+GINI_REF, GINI_DES = "gini", "Gini"
+
+FEATURIZER_REF, FEATURIZER_DES = "featurizer", "Featurizer"
+COUNT_VECTOR_REF, COUNT_VECTOR_DES = "count_vector", "Count Vector"
+TFIDF_REF, TFIDF_DES = "tfidf", "TFIDF"
+
+TOKENIZER_DES = "Tokenizer"
+SWD_REF, SWD_DES = "stop_words_deletion", "Delete stopwords"
+LEMMA_REF, LEMMA_DES = "lemmatization", "Lemmatize words"
+
+DETECTOR_M_ARY_CONFIGS = [
+    ((CLASSIFIER_REF, CLASSIFIER_DES), [(NAIVE_BAYES_REF, NAIVE_BAYES_DES), (LOGISTIC_REF, LOGISTIC_DES), (PERCEPTRON_REF, PERCEPTRON_DES)]),
+    ((FEATURIZER_REF, FEATURIZER_DES), [(COUNT_VECTOR_REF, COUNT_VECTOR_DES), (TFIDF_REF, TFIDF_DES)]),
+    ((DECORATOR_REF, DECORATOR_DES), [(NONE_REF, NONE_DES), (ADA_BOOST_REF, ADA_BOOST_DES), (RANDOM_FOREST_REF, RANDOM_FOREST_DES)])
+]
+
+DETECTOR_BINARY_CONFIGS = [
+    (TOKENIZER_DES, [(SWD_REF, SWD_DES), (LEMMA_REF, LEMMA_DES)])
+]
+
+DETECTOR_INPUT_CONFIGS = [
+    (EPOCHS_REF, EPOCHS_DES),
+    (MAX_DEPTH_REF, MAX_DEPTH_DES),
+    (LEARNING_RATE_REF, LEARNING_RATE_DES)
+]
+
+
+### PLOTS CONFIGURATIONS ###
+
+PLOTS_FIG_SIZE = (5,4)

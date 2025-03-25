@@ -5,12 +5,22 @@ from util.util import partition, draw_plot, file_name
 
 class ExperimentManager ():
 
-    def __init__ (self, detectors, names, data=[[],[]], saving_results_path=None):
-        self.detectors = {name: detector for name, detector in zip(names, detectors)}
+    def __init__ (self, detectors={}, data=[[],[]], saving_results_path=None):
+        self.detectors = {}
         self.texts, self.categories = data
         self.saving_results_path = saving_results_path
-        if not self.saving_results_path.endswith("/"):
+        if saving_results_path is not None and not self.saving_results_path.endswith("/"):
             self.saving_results_path += "/"
+
+    def add_detector (self, detector, name):
+        self.detectors[name] = detector
+
+    def remove_detector (self, name):
+        if name in self.detectors:
+            del self.detectors[name]
+
+    def set_data (self, data):
+        self.texts, self.categories = data
 
     def train_detectors (self, texts, categories):
         #categories = {index: category for index,category in enumerate(categories)}
@@ -51,6 +61,7 @@ class ExperimentManager ():
         for _ in range(repeat):
             accuracies = []
             trained_on_texts, trained_on_texts_categories = [], []
+            
             for index in training_indexes:
                 trained_on_texts.append(self.texts[index])
                 trained_on_texts_categories.append(self.categories[index])
@@ -61,13 +72,13 @@ class ExperimentManager ():
                 ))
             all_accuracies.append(accuracies)
         accuracies = np.mean(np.array(all_accuracies), axis=0)
-        draw_plot(
+        """draw_plot(
             [x for x in range(len(training_indexes))],
             [[accuracy[index] for accuracy in accuracies] for index in range(len(self.detectors))],
             self.detectors.keys(), ["Amount of data trained on", "Detector accuracy"], f"{description}",
             True, f"{self.saving_results_path}{file_name(description)}_{self.get_names_extension()}.png" if self.saving_results_path is not None else None
-        )
-        return accuracies
+        )"""
+        return self.get_indexes(len(training_indexes)), accuracies
 
     def run_on_all (self, training_data_weight=1, filter_on_training=None, filter_on_testing=None, repeat=1):
         all_indexes = self.get_indexes()
@@ -99,41 +110,8 @@ class ExperimentManager ():
         )
 
 
-    """
-    def run_on_all (self, training_data_weight=1):
-        training_indexes, remaining_indexes = partition([index for index in range(len(self.texts))], [training_data_weight])
-        accuracies = []
-        trained_on_texts = []
-        trained_on_texts_categories = []
-        for index in training_indexes:
-            trained_on_texts.append(self.texts[index])
-            trained_on_texts_categories.append(self.categories[index])
-            self.train_detectors(trained_on_texts, trained_on_texts_categories)
-            accuracies.append(self.evaluate_detectors(self.texts, self.categories))
-        return accuracies
+    def __str__ (self):
+        return f"EXPERIMENTS MANAGER ON {str(detector for detector in self.detectors.values())}"
 
-    def run_on_trained (self, training_data_weight=1):
-        training_indexes, remaining_indexes = partition([index for index in range(len(self.texts))], [training_data_weight])
-        accuracies = []
-        trained_on_texts = []
-        trained_on_texts_categories = []
-        for index in training_indexes:
-            trained_on_texts.append(self.texts[index])
-            trained_on_texts_categories.append(self.categories[index])
-            self.train_detectors(trained_on_texts, trained_on_texts_categories)
-            accuracies.append(self.evaluate_detectors(trained_on_texts, trained_on_texts_categories))
-        return accuracies
 
-    def run_on_untrained (self, training_data_weight=0.8):
-        training_indexes, testing_indexes = partition([index for index in range(len(self.texts))], [training_data_weight])
-        accuracies = []
-        testing_texts = [self.text[index] for index in testing_indexes]
-        testing_texts_categories = [self.categories[index] for index in testing_indexes]
-        trained_on_texts, trained_on_texts_categories = [], []
-        for index in training_indexes:
-            trained_on_texts.append(self.texts[index])
-            trained_on_texts_categories.append(self.categories)
-            self.train_detectors(trained_on_texts, trained_on_texts_categories)
-            accuracies.append(self.evaluate_detectors(testing_texts, testing_texts_categories))
-        return accuracies
-    """
+    

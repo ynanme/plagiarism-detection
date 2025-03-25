@@ -50,6 +50,10 @@ class TfidfFeaturizer (Featurizer):
         return tfidf_matrix
 
 
+    def __str__ (self):
+        return "TFDIF"
+
+
 
 if __name__ == "__main__":
 

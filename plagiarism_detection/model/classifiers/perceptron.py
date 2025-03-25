@@ -30,3 +30,7 @@ class PerceptronClassifier (Classifier):
         #print("linear_output", np.sign(linear_output))
         predictions = np.sign(z)
         return predictions[0]
+
+
+    def __str__ (self):
+        return f"PERCEPTRON(epochs={self.epochs})"

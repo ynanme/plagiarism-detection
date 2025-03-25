@@ -33,3 +33,7 @@ class LogisticRegressionClassifier (Classifier):
         z = np.dot(matrix, self.weights) + self.bias
         probabilities = self.sigmoid(z)
         return (probabilities >= 0.5).astype(int)[0]
+
+
+    def __str__ (self):
+        return f"LOGISTIC REGRESSION(epochs={self.epochs})"

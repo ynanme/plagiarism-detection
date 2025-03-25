@@ -9,6 +9,7 @@ from typing import List, Dict
 
 from model.tokenizers.tokenizer import Tokenizer
 #from model.tokenizers.lemmatizer import lemmatize
+from model.featurizers.featurizer import CustomedFeaturizer
 from model.featurizers.count_vector import CountVectorFeaturizer
 from model.featurizers.tfidf import TfidfFeaturizer
 from model.classifiers.naive_bayes import NaiveBayesClassifier
@@ -36,14 +37,14 @@ def load_data (directory):
         assert labels[file_name] == category
     return [texts, categories]
 
-def ada_boost_labels_mapping_function (label):
+def ada_boost_labels_mapping_function (label, reverse=False):
+    if reverse:
+        if label == -1:
+            return 1
+        return 0
     if label == 1:
         return -1
-    if label == 0:
-        return 1
-    if label == -1:
-        return 1
-    return 0
+    return 1
 
 
 def experiment_on_learning (scientist, repeats=[1]):
@@ -65,48 +66,48 @@ def experiment_on_preprocessing (scientist, repeats=[1]):
     experiment_on_learning(scientist, repeats)
 
 
-DATA_DIRECTORY = "data/1"
-RESULTS_DIRECTORY = "experiments_results/perm"
-
-DETECTORS = [
-    PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer()),
-    PlagiarismDetector(MultinomialNB(), CountVectorizer())
-]
-NAMES = ["NB_CV", "NB_CV_Sk"]
-"""
-DETECTORS_PREPROCESSING = [
-    PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer()),
-    PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(Tokenizer(stop_words=[]))),
-    PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(Tokenizer(lemmatizer=lemmatize)))
-]
-NAMES_PREPROCESSING = ["NB_CV_SW", "NB_CV_NO_SW", "NB_CV_Lemma"]
-"""
-
-DETECTORS_ = [
-    PlagiarismDetector(PerceptronClassifier(), CountVectorFeaturizer()),
-    PlagiarismDetector(LogisticRegressionClassifier(), CountVectorFeaturizer())
-]
-NAMES_ = ["Percept_CV", "Logis_CV"]
-
-
-DETECTORS__ = [
-    PlagiarismDetector(NaiveBayesClassifier(), TfidfFeaturizer()),
-    PlagiarismDetector(MultinomialNB(), TfidfVectorizer())
-]
-NAMES__ = ["NB_TFIDF", "NB_TFIDF_Sk"]
-
-DETECTORS___ = [
-    PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CountVectorFeaturizer()),
-    PlagiarismDetector(AdaBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1)), CountVectorizer())
-]
-NAMES___ = ["Ada", "Ada_Sk"]
-
-
-
 if __name__ == "__main__":
 
+    DATA_DIRECTORY = "data/1"
+    RESULTS_DIRECTORY = "experiments_results/perm"
+
+    DETECTORS = [
+        PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer()),
+        PlagiarismDetector(MultinomialNB(), CountVectorizer())
+    ]
+    NAMES = ["NB_CV", "NB_CV_Sk"]
+    """
+    DETECTORS_PREPROCESSING = [
+        PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer()),
+        PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(Tokenizer(stop_words=[]))),
+        PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(Tokenizer(lemmatizer=lemmatize)))
+    ]
+    NAMES_PREPROCESSING = ["NB_CV_SW", "NB_CV_NO_SW", "NB_CV_Lemma"]
+    """
+
+    DETECTORS_ = [
+        PlagiarismDetector(PerceptronClassifier(), CountVectorFeaturizer()),
+        PlagiarismDetector(LogisticRegressionClassifier(), CountVectorFeaturizer())
+    ]
+    NAMES_ = ["Percept_CV", "Logis_CV"]
+
+
+    DETECTORS__ = [
+        PlagiarismDetector(NaiveBayesClassifier(), TfidfFeaturizer()),
+        PlagiarismDetector(MultinomialNB(), TfidfVectorizer())
+    ]
+    NAMES__ = ["NB_TFIDF", "NB_TFIDF_Sk"]
+
+    DETECTORS___ = [
+        PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CustomedFeaturizer()),
+        PlagiarismDetector(AdaBoostClassifier(estimator=DecisionTreeClassifier(max_depth=1)), CustomedFeaturizer())
+    ]
+    NAMES___ = ["Ada", "Ada_Sk"]
+
+
+
     data = load_data(DATA_DIRECTORY)
-    data[0], data[1] = data[0][:30], data[1][:30]
+    #data[0], data[1] = data[0][:30], data[1][:30]
 
     student = ExperimentManager(DETECTORS, NAMES, data, RESULTS_DIRECTORY)
     student_ = ExperimentManager(DETECTORS_, NAMES_, data, RESULTS_DIRECTORY)

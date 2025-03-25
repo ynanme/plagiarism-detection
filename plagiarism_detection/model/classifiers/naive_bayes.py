@@ -40,6 +40,10 @@ class NaiveBayesClassifier (Classifier):
         return self.classes[np.argmax(predictions, axis=0)]
 
 
+    def __str__ (self):
+        return "NAIVE BAYES"
+
+
 class NaiveBayesClassifier2 (Classifier):
     def __init__(self):
         self.class_priors = {} #{plagiat, non_plagiat}

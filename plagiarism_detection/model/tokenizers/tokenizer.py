@@ -6,6 +6,9 @@ from charset_normalizer import from_path
 
 # In[2]:
 class Tokenizer:
+
+    DEFAULT_STOPWORDS = set(stopwords.words('english'))
+
     def __init__(self):
         self.stop_words = set(stopwords.words('english'))
 
@@ -57,3 +60,7 @@ class Tokenizer:
             ngrams += [" ".join(tokens[i:i + n]) for i in range(len(tokens) - n + 1)]
             #print(ngrams)
         return ngrams
+
+
+    def __str__ (self):
+        return f"TOKENIZER(stopwords_deletion={self.stop_words is not None}, lemmatization={self.lemmatizer is not None})"
