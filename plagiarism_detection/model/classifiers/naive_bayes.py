@@ -4,7 +4,66 @@ from typing import List, Dict
 from model.classifiers.classifier import Classifier
 
 
-class NaiveBayesClassifier (Classifier):
+class NaiveBayesClassifier:
+    def __init__(self):
+        self.class_priors = None
+        self.word_probabilities = None
+        self.vocab_size = None
+
+    def fit(self, matrix, filtered_labels):
+        self.vocab_size = matrix.shape[1]
+        self.class_priors = self.compute_class_priors(matrix, filtered_labels)
+        self.word_probabilities = self.compute_word_probabilities(matrix, filtered_labels)
+
+    def predict(self, matrix):
+        if isinstance(matrix, list):
+            matrix = np.array([matrix])
+
+        total_files = matrix.shape[0]
+        nb_classes = len(self.class_priors)
+
+        log_probs = np.zeros((total_files, nb_classes))
+
+        for cls in range(nb_classes):
+            log_probs[:, cls] = np.log(self.class_priors[cls])
+
+            for i in range(total_files):
+                log_probs[i, cls] += np.sum(matrix[i] * np.log(self.word_probabilities[cls]))
+
+        return np.argmax(log_probs, axis=1)
+
+    @staticmethod
+    def compute_class_priors(matrix, filtered_labels):
+        total_files = matrix.shape[0]
+        num_classes = len(np.unique(filtered_labels))
+
+        class_priors = np.zeros(num_classes)
+        for cls in range(num_classes):
+            class_priors[cls] = np.sum(filtered_labels == cls) / total_files
+
+        return class_priors
+    
+    @staticmethod
+    def compute_word_probabilities(matrix, filtered_labels):
+        vocab_size = matrix.shape[1]
+        word_probabilities = np.zeros((len(np.unique(filtered_labels)), vocab_size))
+
+        for cls in range(len(np.unique(filtered_labels))):
+            word_cls = matrix[filtered_labels == cls] 
+            word_counts = np.sum(word_cls, axis=0)
+            total_count = np.sum(word_counts) 
+            word_probabilities[cls] = (word_counts + 1) / (total_count + vocab_size)
+
+        return word_probabilities
+
+
+    def __str__ (self):
+        return "NAIVE BAYES"
+
+
+
+
+class NaiveBayesClassifier2 (Classifier):
 
     def __init__ (self):
         super().__init__()
@@ -43,110 +102,3 @@ class NaiveBayesClassifier (Classifier):
     def __str__ (self):
         return "NAIVE BAYES"
 
-
-class NaiveBayesClassifier2 (Classifier):
-    def __init__(self):
-        self.class_priors = {} #{plagiat, non_plagiat}
-        self.word_probabilities = {} #word_likelihoods
-
-    def fit(self, filtered_labels, featurizer, matrix):
-        # Set class priors
-        
-        self.class_priors = compute_class_priors(filtered_labels)
-        
-        # Set word likelihoods
-        self.word_probabilities = compute_word_probabilities(filtered_labels, featurizer, matrix)
-        """if isinstance(featurizer, CountVectorFeaturizer):
-            self.word_probabilities = compute_word_probabilities(filtered_labels, featurizer, matrix)
-        else:
-            self.word_probabilities = compute_word_probabilities_tfidf(filtered_labels, featurizer, matrix)"""
-    def predict(self, tokens):
-        #initialize scores for all classes(plagiat + non_plagiat)
-        scores = {cls: np.log(self.class_priors[cls]) for cls in self.class_priors}
-
-        #for each token we calculate log of likelihoods for each class
-        for token in tokens:
-            if token in self.word_probabilities:
-                for cls in scores:
-                    scores[cls] += np.log(self.word_probabilities[token][cls])
-                    
-        # Return class with highest score
-        return max(scores, key=scores.get)
-
-
-
-def compute_class_priors(filtered_labels):
-    print("wtf", filtered_labels)
-    total_files = len(filtered_labels)
-    plagiat_files = np.sum(filtered_labels, where=1)
-    #print("plagiat_files", plagiat_files) 
-    return {
-        1: plagiat_files / total_files, #probability of a file been plagiat P(plagiat)
-        0: 1 - (plagiat_files / total_files) #probability of a file been non plagiat P(non_plagiat)
-    }
-
-def compute_word_probabilities(filtered_labels, featurizer, matrix: np.ndarray) -> Dict[str, Dict[str, float]]:
-    print(filtered_labels)
-    totals = np.zeros((len(featurizer.vocabulary), 2)) #matrix that's gonna contain the total occurence of a word in all docs, and in plagiat docs
-    print("the zip", list(zip(filtered_labels, matrix)))
-    for file_name, row in zip(filtered_labels, matrix):
-        for word, index in featurizer.vocabulary.items():
-            totals[index, 0] += row[index] # Add the word's count from the feature matrix to the total counts.
-            print("here", file_name, len(filtered_labels))
-            #if filtered_labels[file_name] == 1:
-            if file_name == 1:
-                totals[index, 1] += row[index] #if the file is plagiat then add the count to the second column
-
-    #total_plagiat_words = matrix[[filtered_labels[file_name] == 1 for file_name in filtered_labels]].sum().sum()
-    #total_non_plagiat_words = matrix[[filtered_labels[file_name] == 0 for file_name in filtered_labels]].sum().sum()
-    total_plagiat_words = matrix[[file_name == 1 for file_name in filtered_labels]].sum()
-    total_non_plagiat_words = matrix[[file_name == 0 for file_name in filtered_labels]].sum()
-
-    word_totals = {}
-    for word, index in featurizer.vocabulary.items():
-        total = totals[index, 0]
-        total_plagiat = totals[index, 1]
-        #the likelihoods of each word == P(word/class) 
-        word_totals[word] = {
-            1: (total_plagiat + 1) / total_plagiat_words if total > 0 else 0,
-            0: (total - total_plagiat + 1) / total_non_plagiat_words
-        }
-
-    return word_totals
-
-def compute_word_probabilities_tfidf(filtered_labels: Dict[str, str], featurizer, matrix: np.ndarray) -> Dict[str, Dict[str, float]]:
-    totals = np.zeros((len(featurizer.vocabulary), 2))  # TF-IDF sums for each class
-
-    for file_name, row in zip(filtered_labels.keys(), matrix):
-        for word, index in featurizer.vocabulary.items():
-            if filtered_labels[file_name] == 0:
-                totals[index, 1] += row[index]
-            else:
-                totals[index, 0] += row[index]
-
-    total_plagiat_tfidf = totals[:, 1].sum()
-    total_non_plagiat_tfidf = totals[:, 0].sum()
-
-    word_totals = {}
-    for word, index in featurizer.vocabulary.items():
-        word_totals[word] = {
-            1: (totals[index, 1] + 1) / (total_plagiat_tfidf + 1),  # Smooth with Laplace
-            0: (totals[index, 0] + 1) / (total_non_plagiat_tfidf + 1),
-        }
-
-    return word_totals
-
-
-
-if __name__ == "__main__":
-
-    c = NaiveBayesClassifier()
-    X = np.random.randint(1,10,(50,10))
-    Xt = np.random.randint(1,10,(3,10))
-    y = np.random.randint(0,2,(7,))
-
-    c.fit(X,y)
-    print(c.classes)
-    print(c.class_priors)
-    print(c.features_prob)
-    print(c.predict(Xt))

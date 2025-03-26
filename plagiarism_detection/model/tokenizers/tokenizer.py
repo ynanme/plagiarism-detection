@@ -6,8 +6,10 @@ from charset_normalizer import from_path
 
 class Tokenizer:
 
-    def __init__(self, lemmatizer=None):
-        self.stop_words = set(stopwords.words('english'))
+    DEFAULT_STOPWORDS = set(stopwords.words('english'))
+
+    def __init__(self, stop_words=DEFAULT_STOPWORDS, lemmatizer=None):
+        self.stop_words = stop_words
         self.lemmatizer = lemmatizer
 
     def tokenize(self, text):

@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from util.util import partition, draw_plot, file_name
 
@@ -114,4 +116,132 @@ class ExperimentManager ():
         return f"EXPERIMENTS MANAGER ON {str(detector for detector in self.detectors.values())}"
 
 
+
+
+class Metrics:
+    """
+    Classe contenant des méthodes pour évaluer les performances d'un modèle de classification.
+    """
+
+    @staticmethod
+    def confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        """
+        Calcule la matrice de confusion pour un problème de classification binaire.
+
+        Args:
+            y_true (np.ndarray): Classes réelles.
+            y_pred (np.ndarray): Classes prédites.
+
+        Returns:
+            np.ndarray: Matrice de confusion sous la forme [[TN, FP], [FN, TP]].
+        """
+        TN = np.sum((y_true == 0) & (y_pred == 0))
+        FP = np.sum((y_true == 0) & (y_pred == 1))
+        FN = np.sum((y_true == 1) & (y_pred == 0))
+        TP = np.sum((y_true == 1) & (y_pred == 1))
+        return np.array([[TN, FP], [FN, TP]])
+
     
+    @staticmethod
+    def accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Calcule l'accuracy (taux de bonnes prédictions).
+
+        Args:
+            y_true (np.ndarray): Classes réelles.
+            y_pred (np.ndarray): Classes prédites.
+
+        Returns:
+            float: Score d'accuracy.
+        """
+        cm = Metrics.confusion_matrix(y_true, y_pred)
+        TN, FP, FN, TP = cm.ravel()
+        return (TP + TN) / (TP + TN + FP + FN)
+
+    
+    @staticmethod
+    def precision(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Calcule la précision (taux de vrais positifs parmi les prédictions positives).
+
+        Args:
+            y_true (np.ndarray): Classes réelles.
+            y_pred (np.ndarray): Classes prédites.
+
+        Returns:
+            float: Score de précision.
+        """
+        cm = Metrics.confusion_matrix(y_true, y_pred)
+        TN, FP, FN, TP = cm.ravel()
+        return TP / (TP + FP) if (TP + FP) > 0 else 0.0
+
+    
+    @staticmethod
+    def recall(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Calcule le rappel (taux de vrais positifs détectés).
+
+        Args:
+            y_true (np.ndarray): Classes réelles.
+            y_pred (np.ndarray): Classes prédites.
+
+        Returns:
+            float: Score de rappel.
+        """
+        cm = Metrics.confusion_matrix(y_true, y_pred)
+        TN, FP, FN, TP = cm.ravel()
+        return TP / (TP + FN) if (TP + FN) > 0 else 0.0
+
+    
+    @staticmethod
+    def f1_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Calcule le F1-score (moyenne harmonique entre précision et rappel).
+
+        Args:
+            y_true (np.ndarray): Classes réelles.
+            y_pred (np.ndarray): Classes prédites.
+
+        Returns:
+            float: Score F1.
+        """
+        precision = Metrics.precision(y_true, y_pred)
+        recall = Metrics.recall(y_true, y_pred)
+        return 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0.0
+
+    
+    @staticmethod
+    def balanced_accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+        """
+        Calcule la balanced accuracy (accuracy équilibrée).
+
+        Args:
+            y_true (np.ndarray): Classes réelles.
+            y_pred (np.ndarray): Classes prédites.
+
+        Returns:
+            float: Score de balanced accuracy.
+        """
+        cm = Metrics.confusion_matrix(y_true, y_pred)
+        TN, FP, FN, TP = cm.ravel()
+        recall_pos = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+        recall_neg = TN / (TN + FP) if (TN + FP) > 0 else 0.0
+        return (recall_pos + recall_neg) / 2
+
+    
+    @staticmethod
+    def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray):
+        """
+        Affiche la matrice de confusion sous forme de heatmap.
+
+        Args:
+            y_true (np.ndarray): Vecteur des vraies classes.
+            y_pred (np.ndarray): Vecteur des classes prédites.
+        """
+        cm = Metrics.confusion_matrix(y_true, y_pred)
+        plt.figure(figsize=(6,5))
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Non Plagié", "Plagié"], yticklabels=["Non Plagié", "Plagié"])
+        plt.xlabel("Prédiction du modèle")
+        plt.ylabel("Classe réelle")
+        plt.title("Matrice de Confusion")
+        plt.show()

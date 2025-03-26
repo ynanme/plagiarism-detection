@@ -31,6 +31,34 @@ class View (ttk.Frame):
         self.experiments_screen.pack()
 
 
+
+class GridFrame(ttk.Frame):
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+    def pack_grid (self, mode, composants, repartitions):
+
+        if mode not in ["row", "column"]:
+            raise ValueError("Le mode doit être 'row' ou 'column'.")
+
+        if not repartitions:
+            raise ValueError("Les répartitions ne peuvent pas être vides.")
+
+        num_cols = len(repartitions)  # Nombre de colonnes par ligne
+
+        for index, comp in enumerate(composants):
+            row, col = divmod(index, num_cols)
+            comp.grid(row=row, column=col, sticky="nsew")
+
+        for col, weight in enumerate(repartitions):
+            self.grid_columnconfigure(col, weight=weight)
+
+        for row in range((len(composants) + num_cols - 1) // num_cols):
+            self.grid_rowconfigure(row, weight=1)
+
+
+
 class HomeScreen (ttk.Frame):
 
     def __init__ (self, parent, actions):
@@ -59,21 +87,14 @@ class DetectorScreen (ttk.Frame):
         self.config_frame.pack()
 
 
-class ExperimentsScreen (ttk.Frame):
+class ExperimentsScreen (GridFrame):
 
     def __init__ (self, parent, detector_config_actions):
         super().__init__(parent)
         self.detector_config_frame = DetectorConfigFrame(self, detector_config_actions)
-        self.plots_frame = PlotFrame(self)
-        self.preliminaire = detector_config_actions[1]
-        self.detector_config_frame.pack()
-        self.plots_frame.pack()
-        self.adding_detector_button = ttk.Button(self, text="Ajouter", command=self.draw_plot)
-        self.adding_detector_button.pack()
+        self.experiments_frame = ExperimentsFrame(self, detector_config_actions)
+        self.pack_grid("column", [self.detector_config_frame, self.experiments_frame], [2, 8])
 
-    def draw_plot (self):
-        r = self.preliminaire()
-        self.plots_frame.add_curve(r[0], r[1])
 
 
 class DetectorConfigFrame (ttk.Frame):
@@ -94,6 +115,42 @@ class DetectorConfigFrame (ttk.Frame):
         for config in DETECTOR_INPUT_CONFIGS:
             config_frame = InputFrame(self, config, actions[0])
             config_frame.pack()
+
+
+class ExperimentsFrame (ttk.Frame):
+
+    def __init__ (self, parent, actions):
+        super().__init__(parent)
+        self.plots_frame = PlotFrame(self)
+        self.launch_experiment = actions[1]
+        self.plots_frame.pack()
+        self.adding_detector_button = ttk.Button(self, text="Ajouter", command=self.update_results)
+        self.adding_detector_button.pack()
+        self.clearing_button = ttk.Button(self, text="Clear", command=self.clear)
+        self.clearing_button.pack()
+        self.init_infos_frame()
+
+    def init_infos_frame (self):
+        self.detectors_infos_frame = ListFrame(self, "CURRENT DETECTORS")
+        self.detectors_infos_frame.pack()
+
+    def update_results (self):
+        experiment = self.launch_experiment()
+        self.draw_plots(experiment["results"])
+        self.add_infos(experiment["infos"])
+
+    def draw_plots (self, results):
+        for X, Y in results:
+            self.plots_frame.add_curve(X, Y)
+
+    def add_infos (self, infos):
+        for name, detector in infos:
+            self.detectors_infos_frame.add_item(name, detector)
+
+    def clear (self):
+        self.detectors_infos_frame.pack_forget()
+        self.init_infos_frame()
+        self.plots_frame.remove_curves()
 
 
 class Param ():
@@ -214,3 +271,51 @@ class PlotFrame (ttk.Frame):
     def add_curves (self, X, Ys):
         for Y in Ys:
             self.add_curve(X, Y)
+
+    def remove_curves (self):
+        for curve in self.curves:
+            curve.remove()
+            self.ax.legend()
+            self.canvas.draw()
+        self.curves = []
+
+
+class ListFrame (ttk.Frame):
+
+    def __init__ (self, parent, title, items=[]):
+        super().__init__(parent)
+        self.items_count = tk.StringVar()
+        self.items_count_label = ttk.Label(self, textvariable=self.items_count, text=0)
+        self.items_count_label.pack()
+        self.title_label = ttk.Label(self, text=title)
+        self.title_label.pack()
+        self.delete_all_button = ttk.Button(self, text="Delete All", command=self.delete_all)
+        self.init_items_frames(items)
+
+    def init_items_frames (self, items):
+        self.items_frames = []
+        for item in items:
+            self.add_item(item)
+
+    def add_item (self, id_, item):
+        item_frame = ItemFrame(self, id_, item)
+        self.items_frames.append(item_frame)
+        self.items_count.set(len(self.items_frames))
+        item_frame.pack()
+
+    def delete_all (self):
+        for item_frame in self.items_frames:
+            item_frame.pack_forget()
+        self.items_frames = []
+
+class ItemFrame (ttk.Frame):
+
+    def __init__ (self, parent, id_, description):
+        super().__init__(parent)
+        self._id = id_
+        self.id_label = ttk.Label(self, text=self._id)
+        self.description_label = ttk.Label(self, text=description)
+        self.id_label.pack()
+        self.description_label.pack()
+
+
