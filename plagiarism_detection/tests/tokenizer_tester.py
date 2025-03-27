@@ -10,7 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from nltk.corpus import stopwords
 
 from util.util import read_files
-from model.tokenizers.tokenizer import Tokenizer
+from model.preprocessors.tokenizer import Tokenizer
 
 
 DIRECTORY = "data/1"

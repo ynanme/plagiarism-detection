@@ -4,15 +4,18 @@ import numpy as np
 from typing import List, Dict
 from sklearn.model_selection import train_test_split
 
-from model.tokenizers.tokenizer import Tokenizer
+from util.util import read_file
+from experimentations.experiments_utils import *
 
-from model.featurizers.CountVectorFeaturizer import CountVectorFeaturizer
-from model.featurizers.TfidfFeaturizer import TfidfFeaturizer
+from model.preprocessors.tokenizer import Tokenizer
 
-from model.classifiers.NaiveBayesClassifier import NaiveBayesClassifier
-from model.classifiers.LogisticRegressionClassifier import LogisticRegressionClassifier 
-from model.classifiers.PerceptronClassifier import PerceptronClassifier
-from model.classifiers.DecisionTreeClassifier import DecisionTreeClassifier
+from model.featurizers.count_vector import CountVectorFeaturizer
+from model.featurizers.tfidf import TfidfFeaturizer
+
+from model.classifiers.naive_bayes import NaiveBayesClassifier
+from model.classifiers.logistic_regression import LogisticRegressionClassifier 
+from model.classifiers.perceptron import PerceptronClassifier
+from model.classifiers.decision_tree import DecisionTreeClassifier
 #from model.classifiers.RandomForestClassifier import RandomForestClassifier
 
 
@@ -45,7 +48,7 @@ Fhyperparameters = {
 }
 
 if __name__ == "__main__":
-    folder_path = "../data-plagiarism"
+    folder_path = "data/1"
 
     filtered_labels = load_labels(folder_path, "file_information.csv")
     labels_df = pd.DataFrame(list(filtered_labels.items()), columns=['File', 'label'])
@@ -76,8 +79,8 @@ if __name__ == "__main__":
     print("Train plagiat count:", len(plagiat_train))
     print("Train non-plagiat count:", len(non_plagiat_train))
     
-    documents = [Tokenizer.read_file(os.path.join(folder_path, file)) for file in train_labels.keys()]
-    test_documents = [Tokenizer.read_file(os.path.join(folder_path, file)) for file in test_labels.keys()]
+    documents = [read_file(os.path.join(folder_path, file)) for file in train_labels.keys()]
+    test_documents = [read_file(os.path.join(folder_path, file)) for file in test_labels.keys()]
     
     for featurizer_class in [CountVectorFeaturizer, TfidfFeaturizer]:
         featurizer_hyperparameters = Fhyperparameters[featurizer_class]

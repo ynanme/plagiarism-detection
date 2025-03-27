@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   model.tokenizers
+   model.preprocessors
 
 Module contents
 ---------------

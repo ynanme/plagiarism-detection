@@ -1,21 +1,21 @@
-model.tokenizers package
+model.preprocessors package
 ========================
 
 Submodules
 ----------
 
-model.tokenizers.lemmatizer module
+model.preprocessors.lemmatizer module
 ----------------------------------
 
-.. automodule:: model.tokenizers.lemmatizer
+.. automodule:: model.preprocessors.lemmatizer
    :members:
    :undoc-members:
    :show-inheritance:
 
-model.tokenizers.tokenizer module
+model.preprocessors.tokenizer module
 ---------------------------------
 
-.. automodule:: model.tokenizers.tokenizer
+.. automodule:: model.preprocessors.tokenizer
    :members:
    :undoc-members:
    :show-inheritance:
@@ -23,7 +23,7 @@ model.tokenizers.tokenizer module
 Module contents
 ---------------
 
-.. automodule:: model.tokenizers
+.. automodule:: model.preprocessors
    :members:
    :undoc-members:
    :show-inheritance:

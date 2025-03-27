@@ -6,8 +6,8 @@ from model.classifiers.decision_tree import DecisionTreeClassifier
 from model.classifiers.ada_boost import AdaBoost
 from model.featurizers.count_vector import CountVectorFeaturizer
 from model.featurizers.tfidf import TfidfFeaturizer
-from model.tokenizers.tokenizer import Tokenizer
-from model.tokenizers.lemmatizer import lemmatize
+from model.preprocessors.tokenizer import Tokenizer
+from model.preprocessors.lemmatizer import lemmatize
 from model.pipeline.plagiarism_detector import PlagiarismDetector
 from gui.config import *
 

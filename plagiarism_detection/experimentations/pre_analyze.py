@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer
 
 from experimentations.experiments_utils import *
-from model.tokenizers.tokenizer import Tokenizer
+from model.preprocessors.tokenizer import Tokenizer
 
 
 class Cloud:

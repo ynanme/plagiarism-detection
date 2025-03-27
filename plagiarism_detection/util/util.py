@@ -16,12 +16,19 @@ python -m spacy download en_core_web_sm
 python -m spacy download fr_core_news_sm
 """
 
+def read_file(file_path) -> str:
+    """
+    Lit un fichier texte en détectant automatiquement son encodage.
 
-def read_file(file_path):
+    Args :
+        file_path (str) : Le chemin du fichier à lire.
+
+    Retourne :
+        str : Le contenu du fichier sous forme de chaîne.
+
+    Lève :
+        ValueError : Si l'encodage du fichier ne peut pas être détecté.
     """
-    Read the file with the detected encoding.
-    """
-    #TODO: fix CharsetMatch problem
     result = from_path(file_path).best() #detects best encoding for the file
     if result:
         return str(result)  

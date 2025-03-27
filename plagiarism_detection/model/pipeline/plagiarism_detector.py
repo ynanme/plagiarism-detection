@@ -1,9 +1,8 @@
 import numpy as np
-import copy
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
-from model.tokenizers.tokenizer import Tokenizer
+from model.preprocessors.tokenizer import Tokenizer
 from model.featurizers.count_vector import CountVectorFeaturizer
 from model.classifiers.naive_bayes import NaiveBayesClassifier
 
@@ -12,19 +11,15 @@ class PlagiarismDetector:
 
     def __init__ (self, classifier, featurizer, tokenizer):
         self.tokenizer = tokenizer
-        self.classifier = classifier
         self.featurizer = featurizer
-
+        self.classifier = classifier
+        self.featurizer.set_tokenizer(self.tokenizer)
     
     def train (self, texts, categories):
-        #self.featurizer.fit(texts)
-        #print(np.array(list(categories.values())))
-        self.classifier = copy.deepcopy(self.classifier)
         self.classifier.fit(self.featurizer.fit_transform(texts), np.array(categories))
 
     
     def classify (self, text):
-        self.classifier = copy.deepcopy(self.classifier)
         return self.classifier.predict(self.featurizer.transform([text]))[0]
 
 

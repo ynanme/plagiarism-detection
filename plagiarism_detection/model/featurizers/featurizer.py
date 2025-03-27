@@ -1,22 +1,23 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
-from model.tokenizers.tokenizer import Tokenizer
+from model.preprocessors.tokenizer import Tokenizer
 
 
 class Featurizer (ABC):
 
-    def __init__ (self, tokenizer=Tokenizer()):
+    def __init__ (self, tokenizer=Tokenizer(), ngram=[1, 1]):
         self.vocabulary = {}
         self.tokenizer = tokenizer
+        self.ngram = ngram
 
-    """
+
+    def set_tokenizer (self, new_tokenizer):
+        self.tokenizer = new_tokenizer
+
+    @abstractmethod
     def fit (self, documents):
-        for doc in documents:
-            for word in doc.split():
-                if not word in self.vocabulary:
-                    self.vocabulary[word] = len(self.vocabulary)
-    """
+        pass
 
     @abstractmethod
     def transform (self, documents):

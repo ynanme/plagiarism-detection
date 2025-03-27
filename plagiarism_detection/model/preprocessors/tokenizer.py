@@ -57,26 +57,6 @@ class Tokenizer:
 
     
     @staticmethod
-    def read_file(file_path) -> str:
-        """
-        Lit un fichier texte en détectant automatiquement son encodage.
-
-        Args :
-            file_path (str) : Le chemin du fichier à lire.
-
-        Retourne :
-            str : Le contenu du fichier sous forme de chaîne.
-
-        Lève :
-            ValueError : Si l'encodage du fichier ne peut pas être détecté.
-        """
-        result = from_path(file_path).best() #detects best encoding for the file
-        if result:
-            return str(result)  
-        else:
-            raise ValueError(f"Could not detect encoding for file: {file_path}")
-    
-    @staticmethod
     def generate_ngrams(tokens: List[str], ngram: Tuple[int, int]) -> List[str]:
         """
         Génère des n-grams à partir d'une liste de tokens.
@@ -96,10 +76,10 @@ class Tokenizer:
 
 
     def __str__(self) -> str:
-            """
-            Retourne une représentation sous forme de chaîne de l'instance de tokenizer.
+        """
+        Retourne une représentation sous forme de chaîne de l'instance de tokenizer.
 
-            Retourne :
-                str : Une chaîne formatée décrivant les paramètres du tokenizer.
-            """
-            return f"TOKENIZER(suppression_des_mots_vides={self.stop_words is not None}, lemmatisation={self.lemmatizer is not None})"
+        Retourne :
+            str : Une chaîne formatée décrivant les paramètres du tokenizer.
+        """
+        return f"TOKENIZER(suppression_des_mots_vides={self.stop_words is not None}, lemmatisation={self.lemmatizer is not None})"

@@ -3,7 +3,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 
 from model.featurizers.count_vector_featurizer import CountVectorFeaturizer
 from model.featurizers.tfidf_featurizer import TfidfFeaturizer
-from model.tokenizers.tokenizer import Tokenizer
+from model.preprocessors.tokenizer import Tokenizer
 from util.util import read_files
 
 
