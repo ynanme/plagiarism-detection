@@ -31,7 +31,10 @@ class Tokenizer:
         if self.lemmatizer is not None:
             return self.lemmatizer(filtered_sentence)
         return filtered_sentence
+<<<<<<< HEAD
+=======
 
+>>>>>>> c5a9c78f8a1131ab19c108bb6f4266b901b551db
     
     @staticmethod
     def read_file(file_path):

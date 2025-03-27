@@ -7,11 +7,12 @@ from model.tokenizers.tokenizer import Tokenizer
 # Term freaquency: frequency of all words within a document
 # Inverse document Frequency: inverse of how often a word appears accross al documents 
 class TfidfFeaturizer:
-    def __init__(self):
+    def __init__(self, ngram=[1, 1]):
         self.vocabulary = {}  
         self.tokenizer = Tokenizer()  
         #self.tokenized_docs = []  
         self.idf_values = {}
+        self.ngram = ngram
 
     def fit(self, documents: List[str]) -> None:
         nb_doc = len(documents) 
@@ -20,7 +21,7 @@ class TfidfFeaturizer:
         tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents]
         
         for tokens in tokenized_docs:
-            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1,1])
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=self.ngram)
             token_counter.update(set(ngrams)) #we only count each occurence of a token in a doc once, in other terms the number of times a token appears in all docs
         
         self.vocabulary = {token: idx for idx, (token, _) in enumerate(token_counter.most_common())}
@@ -37,13 +38,13 @@ class TfidfFeaturizer:
 
         #for each token:term of each document we calculate tf*idf
         for i, tokens in enumerate(tokenized_docs):
-            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1, 1])
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=self.ngram)
             term_counts = Counter(ngrams) #transformation to a counter
             total_terms = len(ngrams)
 
             for token, count in term_counts.items(): 
                 tf = count / total_terms  # Term frequency
-                idf = self.idf_values.get(token, 0)  #default0
+                idf = self.idf_values.get(token, 0)  
                 if token in self.vocabulary:
                      tfidf_matrix[i, self.vocabulary[token]] = tf * idf
         return tfidf_matrix
