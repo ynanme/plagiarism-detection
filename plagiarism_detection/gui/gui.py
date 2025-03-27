@@ -1,26 +1,28 @@
-import tkinter as tk
-from tkinter import ttk
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
-root = tk.Tk()
-root.title("Pack, Grid et Place")
+# 📌 Prédictions du modèle (exemple)
+y_test = [1, 0, 1, 1, 0, 0, 1, 1, 0, 0]  # 1 = Plagié, 0 = Original
+y_pred = [1, 0, 1, 0, 0, 0, 1, 1, 1, 0]  # Prédictions du modèle
 
-frame = ttk.Frame(root, padding=10)
-frame.pack(fill="both", expand=True)
+# 📌 Calcul des métriques
+accuracy = accuracy_score(y_test, y_pred)
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+f1 = f1_score(y_test, y_pred)
 
-# Boutons avec `pack`
-btn1 = ttk.Button(frame, text="Pack")
-btn1.pack(side="top", fill="x", pady=5)
+# 📌 Affichage des résultats
+print(f"Accuracy : {accuracy:.2f}")
+print(f"Précision : {precision:.2f}")
+print(f"Rappel : {recall:.2f}")
+print(f"F1-score : {f1:.2f}")
 
-# Grille
-grid_frame = ttk.Frame(frame)
-grid_frame.pack(pady=10)
-btn2 = ttk.Button(grid_frame, text="Grid 1")
-btn2.grid(row=0, column=0, padx=5)
-btn3 = ttk.Button(grid_frame, text="Grid 2")
-btn3.grid(row=0, column=1, padx=5)
-
-# Bouton avec `place`
-btn4 = ttk.Button(frame, text="Place")
-btn4.place(x=50, y=100)
-
-root.mainloop()
+# 📌 Matrice de confusion
+cm = confusion_matrix(y_test, y_pred)
+plt.figure(figsize=(6,5))
+sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Original", "Plagié"], yticklabels=["Original", "Plagié"])
+plt.xlabel("Prédiction du modèle")
+plt.ylabel("Classe réelle")
+plt.title("Matrice de confusion - Détection de Plagiat")
+plt.show()

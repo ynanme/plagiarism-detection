@@ -4,14 +4,13 @@ from typing import List
 from charset_normalizer import from_path
 
 
-# In[2]:
 class Tokenizer:
-    def __init__(self, lemmatizer=None):
-        self.stop_words = set(stopwords.words('english'))
-        self.lemmatizer = lemmatizer
 
-    #def __init__ (self, stop_words=None, lemmatizer=None):
-     #   self.stop_words = stop_words
+    DEFAULT_STOPWORDS = set(stopwords.words('english'))
+
+    def __init__(self, stop_words=DEFAULT_STOPWORDS, lemmatizer=None):
+        self.stop_words = stop_words
+        self.lemmatizer = lemmatizer
 
     def tokenize(self, text):
         #pattens for respectively numbers, words and punctuation 
@@ -28,15 +27,14 @@ class Tokenizer:
         for w in tokens:
             if w not in stop_words:
                 filtered_sentence.append(w)
-        """
-        print("tokens",tokens)
-        print("\n")
-        print("tokens without stopwords",filtered_sentence)
-        print("and" in filtered_sentence)
-        """
+
         if self.lemmatizer is not None:
             return self.lemmatizer(filtered_sentence)
         return filtered_sentence
+<<<<<<< HEAD
+=======
+
+>>>>>>> c5a9c78f8a1131ab19c108bb6f4266b901b551db
     
     @staticmethod
     def read_file(file_path):
@@ -55,3 +53,7 @@ class Tokenizer:
             ngrams += [" ".join(tokens[i:i + n]) for i in range(len(tokens) - n + 1)]
             #print(ngrams)
         return ngrams
+
+
+    def __str__ (self):
+        return f"TOKENIZER(stopwords_deletion={self.stop_words is not None}, lemmatization={self.lemmatizer is not None})"

@@ -1,20 +1,23 @@
 import tkinter as tk
 from tkinter import ttk
 
-from view import HomeScreen, DetectorScreen
-
+from gui.model import *
+from gui.view import *
+from gui.controller import *
+from gui.config import *
 
 class App (tk.Tk):
 
-    TITLE = "PLAGIARISM DETECTION"
-    GEOMETRY = "800x600"
-
     def __init__ (self):
         super().__init__()
-        self.title(self.TITLE)
-        self.geometry(self.GEOMETRY)
-        self.home_screen = DetectorScreen(self)
-        self.home_screen.pack()
+        self.title(TITLE)
+        self.geometry(GEOMETRY)
+        self.model = Model()
+        self.controller = Controller(self.model)
+        self.view = View(self, self.controller.get_actions())
+        self.controller.set_view(self.view)
+        #self.view.pack()
+        self.controller.control()
 
 
 

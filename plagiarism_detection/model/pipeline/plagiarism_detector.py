@@ -1,4 +1,5 @@
 import numpy as np
+import copy
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
 
@@ -9,36 +10,30 @@ from model.classifiers.naive_bayes import NaiveBayesClassifier
 
 class PlagiarismDetector:
 
-    def __init__ (self, classifier, featurizer):
-        self.tokenizer = Tokenizer()
+    def __init__ (self, classifier, featurizer, tokenizer):
+        self.tokenizer = tokenizer
         self.classifier = classifier
         self.featurizer = featurizer
-        self.set_tools()
 
     
     def train (self, texts, categories):
         #self.featurizer.fit(texts)
         #print(np.array(list(categories.values())))
+        self.classifier = copy.deepcopy(self.classifier)
         self.classifier.fit(self.featurizer.fit_transform(texts), np.array(categories))
-
 
     
     def classify (self, text):
-        return self.classifier.predict(self.featurizer.transform([text]))
-
-    def evaluate (self, texts, categories):
-        y_computed = [self.classify(text) for text in texts]
-        print("y", y_computed)
-        corrects = sum(1 for computed, expected in zip(y_computed, categories) if computed == expected)
-        return corrects / len(categories) if len(categories) > 0 else 1
+        self.classifier = copy.deepcopy(self.classifier)
+        return self.classifier.predict(self.featurizer.transform([text]))[0]
 
 
     def interpret (self, classification):
         return "no plagiarism" if classification == 0 else "plagiarism"
 
-    def set_tools (self):
-        #self.classifier.init_class_priors(2)
-        pass
+
+    def __str__ (self):
+        return f"PLAGIARISM DETECTION [{self.classifier}, {self.featurizer}, {self.tokenizer}]"
 
 
 
