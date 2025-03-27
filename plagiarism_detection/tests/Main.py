@@ -102,6 +102,7 @@ if __name__ == "__main__":
             results = []
             for file_name, feature_vector in zip(test_labels.keys(), test_matrix):
                 prediction = classifier.predict([feature_vector])[0]
+                #print(classifier_class, featurizer_class, prediction)
                 predicted_label = "plagiat" if prediction == 1 else "non_plagiat"
                 results.append({
                     "File Name": file_name,

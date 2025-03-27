@@ -1,17 +1,40 @@
 import numpy as np
 
 class NaiveBayesClassifier:
+    """
+    Le classificateur Naive Bayes implémenté ici repose sur l'hypothèse d'indépendance des caractéristiques (les mots dans ce cas).
+    Il utilise les probabilités a priori des classes et les probabilités conditionnelles des mots donnés une classe.
+    """
     def __init__(self):
+        """
+        Initialisation du classificateur Naive Bayes.
+        """
         self.class_priors = None
         self.word_probabilities = None
         self.vocab_size = None
 
     def fit(self, matrix, filtered_labels):
+        """
+        Apprend les paramètres du modèle (probabilités a priori et probabilités des mots pour chaque classe).
+
+        Args:
+            matrix (ndarray): Matrice de termes-documents où chaque ligne est un document et chaque colonne un mot du vocabulaire.
+            filtered_labels (array): Étiquettes (classes) des documents.
+        """
         self.vocab_size = matrix.shape[1]
         self.class_priors = self.compute_class_priors(matrix, filtered_labels)
         self.word_probabilities = self.compute_word_probabilities(matrix, filtered_labels)
 
     def predict(self, matrix):
+        """
+        Prédit les classes des documents à partir de la matrice de termes-documents.
+
+        Args:
+            matrix (ndarray ou list): Matrice de termes-documents à prédire (peut être une liste convertie en ndarray).
+
+        Returns:
+            ndarray: Tableau des indices des classes prédites pour chaque document.
+        """
         if isinstance(matrix, list):
             matrix = np.array([matrix])
 
@@ -30,6 +53,16 @@ class NaiveBayesClassifier:
 
     @staticmethod
     def compute_class_priors(matrix, filtered_labels):
+        """
+        Calcule les probabilités a priori des classes à partir des labels.
+
+        Args:
+            matrix (ndarray): Matrice de termes-documents.
+            filtered_labels (array): Étiquettes (classes) des documents.
+
+        Returns:
+            ndarray: Probabilités a priori des classes.
+        """
         total_files = matrix.shape[0]
         num_classes = len(np.unique(filtered_labels))
 
@@ -41,6 +74,16 @@ class NaiveBayesClassifier:
     
     @staticmethod
     def compute_word_probabilities(matrix, filtered_labels):
+        """
+        Calcule les probabilités conditionnelles des mots donnés une classe.
+
+        Args:
+            matrix (ndarray): Matrice de termes-documents.
+            filtered_labels (array): Étiquettes (classes) des documents.
+
+        Returns:
+            ndarray: Probabilités des mots pour chaque classe.
+        """
         vocab_size = matrix.shape[1]
         word_probabilities = np.zeros((len(np.unique(filtered_labels)), vocab_size))
 

@@ -6,13 +6,30 @@ from model.tokenizers.tokenizer import Tokenizer
 
 
 class CountVectorFeaturizer:
+    """
+    La classe `CountVectorFeaturizer` permet de convertir un ensemble de documents
+    texte en une matrice de caractéristiques basée sur des n-grammes.
+    Elle utilise un tokenizer pour extraire les tokens et crée un vecteur de comptage des n-grammes.
+    """
     def __init__(self, ngram=[1, 1]):
+        """
+        Initialise un modèle `CountVectorFeaturizer` avec des n-grammes.
+
+        Args:
+            ngram (list, optionnel): Plage de taille des n-grammes (par défaut [1, 1], donc unigramme).
+        """
         self.vocabulary = {} 
         self.tokenizer = Tokenizer() 
         self.tokenized_docs = [] 
         self.ngram = ngram
 
     def fit(self, documents: List[str]) -> None:
+        """
+        Apprend un vocabulaire à partir des documents fournis et construit un vocabulaire basé sur les n-grammes.
+
+        Args:
+            documents (List[str]): Liste des documents texte à analyser.
+        """
         token_counter = Counter()  
         self.tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents] 
         
@@ -23,6 +40,15 @@ class CountVectorFeaturizer:
         self.vocabulary = {token: idx for idx, (token, _) in enumerate(token_counter.most_common())}
 
     def transform(self, documents: List[str]) -> np.ndarray:
+        """
+        Transforme une liste de documents texte en une matrice de comptage des n-grammes.
+
+        Args:
+            documents (List[str]): Liste des documents texte à transformer.
+
+        Returns:
+            np.ndarray: Matrice où chaque ligne représente un document et chaque colonne un n-gramme du vocabulaire.
+        """
         tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents]  
         count_matrix = np.zeros((len(documents), len(self.vocabulary)), dtype=int)
 
