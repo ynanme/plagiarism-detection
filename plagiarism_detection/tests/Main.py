@@ -26,18 +26,22 @@ def load_labels(folder_path: str, file_name: str) -> Dict[str, str]:
 
 hyperparameters = {
     (CountVectorFeaturizer, NaiveBayesClassifier): {},
-    (CountVectorFeaturizer, LogisticRegressionClassifier): {'learning_rate': 0.05, 'epochs': 100, 'threshold': 0.5},
+    (CountVectorFeaturizer, LogisticRegressionClassifier): {'learning_rate': 0.05, 'epochs': 100, 'threshold': 0.5, 'patience': 10, 'tolerance': 1e-4},
     (CountVectorFeaturizer, PerceptronClassifier): {'learning_rate': 0.001, 'epochs': 1000, 'patience': 10, 'tolerance': 1e-4},
     #(CountVectorFeaturizer, DecisionTreeClassifier): {'max_depth': 5, 'criterion': 'gini'},
     (CountVectorFeaturizer, DecisionTreeClassifier): {'max_depth': 10, 'criterion': 'entropy'},
     #(CountVectorFeaturizer, RandomForestClassifier): {},
     
     (TfidfFeaturizer, NaiveBayesClassifier): {}, 
-    (TfidfFeaturizer, LogisticRegressionClassifier): {'learning_rate': 0.01, 'epochs': 100, 'threshold': 0.56},
+    (TfidfFeaturizer, LogisticRegressionClassifier): {'learning_rate': 0.01, 'epochs': 100, 'threshold': 0.56, 'patience': 10, 'tolerance': 1e-4},
     (TfidfFeaturizer, PerceptronClassifier): {'learning_rate': 0.0001, 'epochs': 700, 'patience': 10, 'tolerance': 1e-4},
     #(TfidfFeaturizer, DecisionTreeClassifier): {'max_depth': 2, 'criterion': 'gini'}, #always at 16 no matter the depth
     (TfidfFeaturizer, DecisionTreeClassifier): {'max_depth': 10, 'criterion': 'entropy'}, #always at 16 no matter the depth
     #(TfidfFeaturizer, RandomForestClassifier): {},
+}
+Fhyperparameters = {
+    CountVectorFeaturizer: {'ngram': [1, 1]},
+    TfidfFeaturizer: {'ngram': [1, 1]}
 }
 
 if __name__ == "__main__":
@@ -76,7 +80,9 @@ if __name__ == "__main__":
     test_documents = [Tokenizer.read_file(os.path.join(folder_path, file)) for file in test_labels.keys()]
     
     for featurizer_class in [CountVectorFeaturizer, TfidfFeaturizer]:
-        featurizer = featurizer_class()
+        featurizer_hyperparameters = Fhyperparameters[featurizer_class]
+        featurizer = featurizer_class(**featurizer_hyperparameters)  # Pass hyperparameters
+
         featurizer.fit(documents)
         matrix = featurizer.transform(documents)
         test_matrix = featurizer.transform(test_documents)
@@ -107,7 +113,7 @@ if __name__ == "__main__":
             df_results["Mismatch"] = df_results["Expected Label"] != df_results["Predicted Label"]
             
             #print(f"\nResults for {featurizer_class.__name__} with {classifier_class.__name__}:")
-            #print(df_results.to_string(index=False))
+            print(df_results.to_string(index=False))
             
             mismatches = df_results[df_results["Mismatch"]]
             print(f"Mismatches for {featurizer_class.__name__} with {classifier_class.__name__}: {len(mismatches)}, {100-len(mismatches)*100/24}\n")

@@ -6,17 +6,18 @@ from model.tokenizers.tokenizer import Tokenizer
 
 
 class CountVectorFeaturizer:
-    def __init__(self):
+    def __init__(self, ngram=[1, 1]):
         self.vocabulary = {} 
         self.tokenizer = Tokenizer() 
         self.tokenized_docs = [] 
+        self.ngram = ngram
 
     def fit(self, documents: List[str]) -> None:
         token_counter = Counter()  
         self.tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents] 
         
         for tokens in self.tokenized_docs:
-            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1,1])
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=self.ngram)
             token_counter.update(set(ngrams))
         
         self.vocabulary = {token: idx for idx, (token, _) in enumerate(token_counter.most_common())}
@@ -26,7 +27,7 @@ class CountVectorFeaturizer:
         count_matrix = np.zeros((len(documents), len(self.vocabulary)), dtype=int)
 
         for i, tokens in enumerate(tokenized_docs):
-            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=[1, 1])
+            ngrams = Tokenizer.generate_ngrams(tokens=tokens, ngram=self.ngram)
             for token in ngrams:
                 idx = self.vocabulary.get(token)
                 if idx is not None:

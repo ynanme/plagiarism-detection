@@ -37,8 +37,6 @@ class Tokenizer:
         if self.lemmatizer is not None:
             return self.lemmatizer(filtered_sentence)
         return filtered_sentence
-
-        return filtered_tokens
     
     @staticmethod
     def read_file(file_path):
