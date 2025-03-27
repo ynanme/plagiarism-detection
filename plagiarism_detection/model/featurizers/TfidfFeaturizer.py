@@ -3,11 +3,21 @@ from typing import List
 from collections import Counter
 from model.tokenizers.tokenizer import Tokenizer
 
-
 # Term freaquency: frequency of all words within a document
 # Inverse document Frequency: inverse of how often a word appears accross al documents 
 class TfidfFeaturizer:
+    """
+    La classe `TfidfFeaturizer` permet de convertir un ensemble de documents texte en une matrice TF-IDF.
+    Elle utilise un tokenizer pour extraire les n-grammes des documents et calcule les valeurs TF-IDF pour chaque n-gramme.
+    """
+
     def __init__(self, ngram=[1, 1]):
+        """
+        Initialise le modèle TF-IDF avec des n-grammes.
+
+        Args:
+            ngram (list, optionnel) : Plage de taille des n-grammes (par défaut [1, 1], donc unigramme).
+        """
         self.vocabulary = {}  
         self.tokenizer = Tokenizer()  
         #self.tokenized_docs = []  
@@ -15,6 +25,12 @@ class TfidfFeaturizer:
         self.ngram = ngram
 
     def fit(self, documents: List[str]) -> None:
+        """
+        Apprend le vocabulaire et calcule les valeurs IDF à partir des documents fournis.
+
+        Args:
+            documents (List[str]): Liste des documents texte à analyser.
+        """
         nb_doc = len(documents) 
         token_counter = Counter()  
 
@@ -33,6 +49,15 @@ class TfidfFeaturizer:
         }
 
     def transform(self, documents: List[str]) -> np.ndarray:
+        """
+        Transforme une liste de documents texte en une matrice TF-IDF.
+
+        Args:
+            documents (List[str]): Liste des documents texte à transformer.
+
+        Returns:
+            np.ndarray: Matrice où chaque ligne représente un document et chaque colonne un n-gramme du vocabulaire.
+        """
         tokenized_docs = [self.tokenizer.tokenize(doc) for doc in documents]  # Tokenize input documents
         tfidf_matrix = np.zeros((len(documents), len(self.vocabulary)))
 
