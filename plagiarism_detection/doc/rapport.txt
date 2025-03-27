@@ -38,3 +38,104 @@ Des tests unitaires ont été réalisés sur les éléments non triviaux de notr
 Chaîne de traitement
 
 La description du paquetage ci-dessus dessine déjà la chaîne de traitement mise en place.
+
+
+
+
+Experimentations
+
+Pré-analyse du corpus de données utilsé
+
+Avant de se lancer dans les différentes evaluations de nos modèles, il a été nécessaire d'analyser le corpus de données qui nous a été fourni. De cela se sont dégagés la structure du corpus, les types de textes inclus, les différents degrés de plagiats impliqués ...
+
+Description
+Le corpus, en anglais, a été créé expressement pour des études sur la détection de plagiat par le département Informatique de l'université de Sheffield en . Il a été demandé à des étudiants de rédiger une réponse courtes à des questions liées à l'informatique qu'étaient les suivantes : "What is inheritance in object oriented programming?", "Explain the PageRank algorithm that is used by the Google search engine.", "Explain the Vector Space Model that is used for Information Retrieval.", "Explain Bayes Theorem from probability theory." et "What is dynamic programming?". Pour simuler du plagiat, certains étudiants avaient été orientés vers la source Wikipédia traitant du sujet qui leur avait été confié. Et pour simuler le non plagiat, il a leur été tout simplement demandé d'utiliser leurs propres connaissances. Les différents degrés de plagiat suivant ont été donc définis :
+- Near copy : demande de copier tout simplement de la source
+- Light revision : demande de baser la réponse sur la source, avec autorisation de modifier légèrement sa structure
+- Heavy revision : demande de paraphraser la source, d'utiliser ses propres structures
+- Non-plagiarism : demande d'utiliser ses propres connaissances pour répondre à la question (possibilité d'utiliser d'autres ressources autres que la source Wikipédia)
+- Original : les textes sources
+
+Tailles du corpus
+Voici le profil du corpus, décrit par l'université : "
+Le corpus contient 100 documents (95 réponses fournies par les 19 participants et les cinq articles sources issus de Wikipédia). Les textes des réponses contiennent un total de 19 559 mots (22 230 tokens uniques). Les pages Wikipédia totalisent 14 242 mots après conversion en texte brut et suppression des références aux URL.
+La longueur moyenne des fichiers dans le corpus est de 208 mots (écart-type de 64,91) et de 113 tokens uniques (écart-type de 30,11).
+59 des textes (62 %) ont été rédigés par des anglophones natifs. La langue maternelle variait pour les auteurs des autres textes.
+Pour chaque tâche d’apprentissage, il y a 19 exemples de révision lourde, 19 exemples de révision légère, 19 exemples de copie proche et 38 exemples non plagiés, écrits indépendamment de la source Wikipédia.
+"
+
+Qu'avons nous analyser ?
+Après lectures des textes produits par les étudiants, l'aspect le plus visible (pour l'esprit humain) du corpus est que pour un sujet donné, les textes se ressemblent tous, de l'original à la copie. Ce qui est tout de même logique. Par contre, pour les textes plagiés, les paraphrases de l'original ont été facilement identifiables ; mais encore une fois, on le voit parce qu'on est humain. Pourrait on faire voir à l'ordinateur de pareilles paraphrases ? Il a fallu voir quels autres caractéristiques pouvaient être discrimantes à part ces aspects intuitifs.
+Voir quels mots revenaient le plus dans les textes plagiés, et lesquels étaient plus présents dans les textes non plagiés nous a semblé le meilleur choix. Ces mots étaient aux premiers abordsles mêmes pour les deux classes, bien évidemment, vu que les textes traitaient tous des mêmes sujets. Ils ont donc été jugés non discriminants et retirés des résultats. Les résultats exploitables obtenus ont été représenté sous forme de nuages de mots (wordclouds) que voici : 
+
+
+Évaluations de nos modèles
+
+Métriques évaluées
+Il a fallut évaluer plus d'une métrique, une métrique seule ne pouvant que nous décrire un seul aspect de nos modèle. Cela inclut l'étude des vrais positifs (VP), des faux positifs (FP), des vrais négatifs (VN) et des faux négatifs (FN) ; les positifs étant les plagiats et les négatifs les non plagiats.
+
+accuracy - nombre_predictions_correctes/nombre_de_predictions_totales
+C'est la métrique la plus intuitive. Quelle est la proportion de labels correctement prédits par notre modèle.
+
+balanced_accuracy - 1/2*(VP/TP+VN/TN)
+L'accuracy ci-dessus peut être parfois très trompeuse, notamment lorsque les classses sont déséquilibrées. Par exemple, évalué sur un corpus de test contenant 90 textes plagiés et 10 textes non plagiés, un modèle naïf qui labelise tous les textes comme plagié aura une accuracy de 90%. Le rôle de la balanced_accuracy sera de corriger cet effet de déséquilibre en faisant la moyenne des taux de détection des deux classes.
+
+precision - VP/(VP+FP)
+La précision est la fiabilité du modèle sur ses prédictions positives. Autrement dit, sa capacité à ne pas labeliser comme plagié un texte qui ne le l'est pas.
+
+recall - VP/(VP+FN)
+Le recall (rappel) mesure la proportion de cas de plagiat correctement détectés par le modèle. C' est la capacité du modèle à détecter tous les plagiats.
+
+f1_score - 2*(precision+recall)/precision*recall​
+Il fait fait la moyenne harmonique de la précision et du rappel. Formellement, quelle est la capacité de notre modèle à detecter tous les plagiats, sans pour autant accuser à tort les textes qui ne sont pas plagiés
+
+
+Quels modèles sont les plus performants pour détecter du plagiat ?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
