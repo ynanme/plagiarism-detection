@@ -9,7 +9,7 @@ class Node:
         self.pred_class = pred_class
         self.is_leaf = is_leaf
 
-class DecisionTreeClassifier:
+class DecisionTree:
     def __init__(self, max_depth=5, criterion='entropy'):
         self.root = Node()
         self.max_depth = max_depth

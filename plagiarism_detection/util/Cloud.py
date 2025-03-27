@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 from PIL import Image, ImageDraw, ImageFont
 from model.featurizers.CountVectorFeaturizer import CountVectorFeaturizer
+from util.util import read_files
 
 class Cloud:
     def transform_zeros(val):
@@ -11,7 +12,7 @@ class Cloud:
         else:
             return val
 
-    def Cloud(documents):
+    def Cloud(self, documents):
         mask = np.array(Image.open("assets/plagiat1.png"))
         maskable_image = np.ndarray((mask.shape[0],mask.shape[1]), np.int32)
         maskable_image = mask
@@ -47,3 +48,9 @@ class Cloud:
         draw.text((text_x, text_y), word, fill=255, font=font)
 
         return np.array(img)
+
+
+if __name__ == "__main__":
+
+    c = Cloud()
+    c.Cloud(read_files("data/1/"))

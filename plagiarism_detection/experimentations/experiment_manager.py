@@ -1,18 +1,19 @@
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import matplotlib.ticker as ticker
+from collections import defaultdict
 
 from util.util import partition, draw_plot, file_name
 
 
 class ExperimentManager ():
 
-    def __init__ (self, detectors={}, data=[[],[]], saving_results_path=None):
-        self.detectors = {}
+    def __init__ (self, detectors={}, data=[[],[]]):
+        self.detectors = detectors
         self.texts, self.categories = data
-        self.saving_results_path = saving_results_path
-        if saving_results_path is not None and not self.saving_results_path.endswith("/"):
-            self.saving_results_path += "/"
+        self.split_data()
 
     def add_detector (self, detector, name):
         self.detectors[name] = detector
@@ -24,92 +25,77 @@ class ExperimentManager ():
     def set_data (self, data):
         self.texts, self.categories = data
 
+    def split_data (self, training_data_weight=0.8):
+        self.training_indexes, self.testing_indexes = partition(self.get_indexes(), [training_data_weight])
+
     def train_detectors (self, texts, categories):
-        #categories = {index: category for index,category in enumerate(categories)}
         for detector in self.detectors.values():
             detector.train(texts, categories)
     
-    def evaluate_detectors (self, texts, categories):
-        #categories = {index: category for index,category in enumerate(categories)}
-        accuracies = []
-        for detector in self.detectors.values():
-            accuracies.append(detector.evaluate(texts, categories))
-        return accuracies
+    def evaluate_detectors (self):
+        texts, categories = self.get_texts(self.testing_indexes), self.get_categories(self.testing_indexes)
+        results = {}
+        for name, detector in self.detectors.items():
+            predicted_categories = [detector.classify(text) for text in texts]
+            results[name] = Metrics.scores(np.array(categories), np.array(predicted_categories))
+        return results
 
     def get_indexes (self, count=None):
         count = len(self.texts) if count is None else count
         return [index for index in range(count)]
 
-    def filter_indexes (self, indexes, filterr):
-        if filterr is not None:
-            return [index for index in indexes if self.categories[index] == filterr]
-        return indexes
+    def get_texts (self, indexes):
+        return [self.texts[index] for index in indexes]
 
-    def get_filters_description (self, filter_on_training, filter_on_testing):
-        filters_description = ""
-        filters_description += f"trained on {filter_on_training} " if filter_on_training is not None else ""
-        filters_description += f"tested on {filter_on_testing}" if filter_on_testing is not None else ""
-        return filters_description
-    
-    def get_names_extension (self):
-        return "&".join(self.detectors.keys())
+    def get_categories (self, indexes):
+        return [self.categories[index] for index in indexes]
 
-    
-    def run_experiment (self, training_indexes, testing_indexes=None, repeat=1, description="Experiment"):
-        run_on_trained = testing_indexes is None
-        testing_texts = [] if run_on_trained else [self.texts[index] for index in testing_indexes]
-        testing_texts_categories = [] if run_on_trained else [self.categories[index] for index in testing_indexes]
-        all_accuracies = []
+
+
+    def rank_detectors (self, training_data_weight=0.8, repeat=1):
+        all_scores = []
         for _ in range(repeat):
-            accuracies = []
-            trained_on_texts, trained_on_texts_categories = [], []
+            self.split_data(training_data_weight)
+            self.train_detectors(self.get_texts(self.training_indexes), self.get_categories(self.training_indexes))
+            scores = self.evaluate_detectors()
+            scores_frame = pd.DataFrame(scores, index=["accuracy", "balanced_accuracy", "precision", "recall", "f1_score"])
+            all_scores.append(scores_frame)
+        final_scores = pd.concat(all_scores).groupby(level=0).mean()
+        final_rankings = final_scores.rank(axis=1, ascending=False, method="min").astype(int)
+        print(final_scores)
+        return final_scores, final_rankings
+
+
+    def evaluate_detectors_on_learning (self, training_data_weight=0.8, repeat=1, batch_size_increment=10):
+    
+        # Initialisation du dictionnaire pour stocker les résultats de chaque répétition
+        all_results = {name: [] for name in self.detectors.keys()}
+        
+        # Exécution de la logique pour chaque répétition
+        for _ in range(repeat):
+            results = {name: [] for name in self.detectors.keys()}  # Réinitialisation pour chaque répétition
+            self.split_data(training_data_weight)  # Séparer les données
             
-            for index in training_indexes:
-                trained_on_texts.append(self.texts[index])
-                trained_on_texts_categories.append(self.categories[index])
+            for batch_size in range(batch_size_increment, len(self.training_indexes)+batch_size_increment, batch_size_increment):
+                trained_on_texts = self.get_texts(self.training_indexes[:batch_size])
+                trained_on_texts_categories = self.get_categories(self.training_indexes[:batch_size])
                 self.train_detectors(trained_on_texts, trained_on_texts_categories)
-                accuracies.append(self.evaluate_detectors(
-                    trained_on_texts if run_on_trained else testing_texts,
-                    trained_on_texts_categories if run_on_trained else testing_texts_categories
-                ))
-            all_accuracies.append(accuracies)
-        accuracies = np.mean(np.array(all_accuracies), axis=0)
-        """draw_plot(
-            [x for x in range(len(training_indexes))],
-            [[accuracy[index] for accuracy in accuracies] for index in range(len(self.detectors))],
-            self.detectors.keys(), ["Amount of data trained on", "Detector accuracy"], f"{description}",
-            True, f"{self.saving_results_path}{file_name(description)}_{self.get_names_extension()}.png" if self.saving_results_path is not None else None
-        )"""
-        return self.get_indexes(len(training_indexes)), accuracies
+                
+                scores = self.evaluate_detectors()  # Évaluer les détecteurs
+                for name in scores:
+                    results[name].append(scores[name])  # Ajouter les scores à la liste
+            
+            # Ajouter les résultats de cette répétition à all_results
+            for name, scores in results.items():
+                all_results[name].append(scores)
+        
+        # Calcul des moyennes des scores sur toutes les répétitions
+        avg_results = {}
+        for name, scores in all_results.items():
+            avg_results[name] = np.mean(scores, axis=0)  # Moyenne des scores pour chaque détecteur
 
-    def run_on_all (self, training_data_weight=1, filter_on_training=None, filter_on_testing=None, repeat=1):
-        all_indexes = self.get_indexes()
-        training_indexes = partition(all_indexes, [training_data_weight])[0]
-        return self.run_experiment(
-            self.filter_indexes(training_indexes, filter_on_training),
-            self.filter_indexes(all_indexes, filter_on_testing),
-            repeat,
-            f"Evaluating on all data, training data is {round(training_data_weight*100)}%, {self.get_filters_description(filter_on_training, filter_on_testing)}, average on {repeat} repeats"
-        )
-
-    def run_on_trained (self, training_data_weight=1, filter_on_training=None, filter_on_testing=None, repeat=1):
-        training_indexes = partition(self.get_indexes(), [training_data_weight])[0]
-        #return self.run_experiment(training_indexes, description=f"Evaluating on trained data, training data is {round(training_data_weight*100)}%")
-        return self.run_experiment(
-            self.filter_indexes(training_indexes, filter_on_training),
-            repeat=repeat,
-            description=f"Evaluating on trained data, training data is {round(training_data_weight*100)}%, {self.get_filters_description(filter_on_training, filter_on_testing)}, average on {repeat} repeats"
-        )
-
-    def run_on_untrained (self, training_data_weight=0.8, filter_on_training=None, filter_on_testing=None, repeat=1):
-        training_indexes, testing_indexes = partition(self.get_indexes(), [training_data_weight])
-        #return self.run_experiment(training_indexes, testing_indexes, f"Evaluating on untrained data, training data is {round(training_data_weight*100)}%")
-        return self.run_experiment(
-            self.filter_indexes(training_indexes, filter_on_training),
-            self.filter_indexes(testing_indexes, filter_on_testing),
-            repeat,
-            f"Evaluating on untrained data, training data is {round(training_data_weight*100)}%, {self.get_filters_description(filter_on_training, filter_on_testing)}, average on {repeat} repeats"
-        )
+        return avg_results,all_results
+                
 
 
     def __str__ (self):
@@ -154,6 +140,9 @@ class Metrics:
         Returns:
             float: Score d'accuracy.
         """
+        #correct_predictions = np.sum(y_true == y_pred)
+        #total_predictions = len(y_true)
+        #return correct_predictions / total_predictions if total_predictions > 0 else 0.0
         cm = Metrics.confusion_matrix(y_true, y_pred)
         TN, FP, FN, TP = cm.ravel()
         return (TP + TN) / (TP + TN + FP + FN)
@@ -230,6 +219,17 @@ class Metrics:
 
     
     @staticmethod
+    def scores (y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        return np.array([
+            Metrics.accuracy(y_true, y_pred),
+            Metrics.balanced_accuracy(y_true, y_pred),
+            Metrics.precision(y_true, y_pred),
+            Metrics.recall(y_true, y_pred),
+            Metrics.f1_score(y_true, y_pred)
+        ])
+
+    
+    @staticmethod
     def plot_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray):
         """
         Affiche la matrice de confusion sous forme de heatmap.
@@ -244,4 +244,55 @@ class Metrics:
         plt.xlabel("Prédiction du modèle")
         plt.ylabel("Classe réelle")
         plt.title("Matrice de Confusion")
+        plt.show()
+
+    @staticmethod
+    def plot_scores_and_rankings (scores, rankings):
+        fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+        scores.T.plot(kind="bar", ax=axes[0])
+        axes[0].set_title("Scores moyens des détecteurs")
+        axes[0].set_ylabel("Score")
+        axes[0].set_xlabel("Détecteurs")
+        axes[0].legend(title="Métriques")
+        axes[0].grid(axis="y", linestyle="--", alpha=0.7)
+
+        rankings.T.plot(kind="bar", ax=axes[1])
+        axes[1].invert_yaxis()
+        axes[1].set_title("Classement des détecteurs")
+        axes[1].set_ylabel("Rang (1 = meilleur)")
+        axes[1].set_xlabel("Détecteurs")
+        axes[1].yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        axes[1].legend(title="Métriques")
+        axes[1].grid(axis="y", linestyle="--", alpha=0.7)
+
+        plt.tight_layout()
+        plt.show()
+
+
+    @staticmethod
+    def plot_learning_curves(results, batch_size_increment):
+        metrics_names = ["Accuracy", "Balanced Accuracy", "Precision", "Recall", "F1-score"]
+        
+        # Nombre de batchs
+        num_batches = len(next(iter(results.values())))  # Prend la taille d'un détecteur
+        
+        # Axe des X (taille des données utilisées pour l'entraînement)
+        x_values = np.arange(batch_size_increment, (num_batches + 1) * batch_size_increment, batch_size_increment)
+
+        # Crée une figure avec 5 sous-graphiques (1 ligne, 5 colonnes)
+        fig, axes = plt.subplots(1, 5, figsize=(18, 6))
+        plt.tight_layout(pad=5.0)
+    
+        
+        for metric_idx, (metric_name, ax) in enumerate(zip(metrics_names, axes)):
+            for detector_name, scores in results.items():
+                metric_values = [score[metric_idx] for score in scores]  # Extraire la métrique correspondante
+                ax.plot(x_values, metric_values, label=detector_name)
+            
+            ax.set_title(metric_name)
+            ax.set_xlabel("Taille des données d'entraînement")
+            ax.set_ylabel("Score")
+            ax.grid(True)
+            ax.legend(loc='upper left', fontsize=8)
+        
         plt.show()
