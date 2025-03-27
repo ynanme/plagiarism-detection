@@ -1,56 +1,71 @@
+from wordcloud import WordCloud
 import numpy as np
 import matplotlib.pyplot as plt
-from wordcloud import WordCloud
-from PIL import Image, ImageDraw, ImageFont
-from model.featurizers.CountVectorFeaturizer import CountVectorFeaturizer
-from util.util import read_files
+from sklearn.feature_extraction.text import CountVectorizer
+
+from experimentations.experiments_utils import *
+from model.tokenizers.tokenizer import Tokenizer
+
 
 class Cloud:
+    
+    @staticmethod
     def transform_zeros(val):
         if val == 0:
             return 255
         else:
             return val
 
-    def cloud(self, documents):
-        mask = np.array(Image.open("assets/plagiat1.png"))
-        maskable_image = np.ndarray((mask.shape[0],mask.shape[1]), np.int32)
-        maskable_image = mask
-
-        featurizer = CountVectorFeaturizer()
-        featurizer.fit(documents)
-        matrix = featurizer.transform(documents)
-
+    def get_word_frequencies(self, documents):
+        featurizer = CountVectorizer()
+        matrix = featurizer.fit_transform(documents)
         word_occurence = np.sum(matrix, axis=0)
-        vocabulary = featurizer.vocabulary
-        occurence = {token: word_occurence[i] for token, i in vocabulary.items()}
-        wordcloud = WordCloud(width=3000, height=2000, background_color="white", colormap="coolwarm").generate_from_frequencies(occurence)
+        vocabulary = featurizer.vocabulary_
+        occurence = {token: word_occurence[0, i] for token, i in vocabulary.items()}
+        return occurence
+
+    def wordcloud(self, documents, documents_to_exclude=[], frequency_diff=500, title="WordCloud"):
+        frequencies = self.get_word_frequencies(documents)
+        filtered_frequencies = frequencies
+        if len(documents_to_exclude) > 0:
+            frequencies_to_exclude = self.get_word_frequencies(documents_to_exclude)
+            filtered_frequencies = {}
+            for word, freq in frequencies.items():
+                if word in frequencies_to_exclude:
+                    if abs(freq - frequencies_to_exclude[word]) > frequency_diff:
+                        filtered_frequencies[word] = freq
+                else:
+                    filtered_frequencies[word] = freq
+
+        wordcloud = WordCloud(width=3000, height=2000, background_color="white", colormap="coolwarm").generate_from_frequencies(filtered_frequencies)
+        
         plt.figure(figsize=(40, 30))
         plt.imshow(wordcloud, interpolation="bilinear")
         plt.axis("off")
-        plt.title("Word Cloud", fontsize=15)
+        plt.title(title, fontsize=15)
         plt.show()
-
-    def create_text_mask(word, width=800, height=400, font_size=150):
-        img = Image.new("L", (width, height), 0)
-        draw = ImageDraw.Draw(img)
-
-        try:
-            font = ImageFont.truetype("arial.ttf", font_size)
-        except IOError:
-            font = ImageFont.load_default()
-
-        bbox = draw.textbbox((0, 0), word, font=font)
-        text_width, text_height = bbox[2] - bbox[0], bbox[3] - bbox[1]
-
-        text_x = (width - text_width) // 2
-        text_y = (height - text_height) // 2
-        draw.text((text_x, text_y), word, fill=255, font=font)
-
-        return np.array(img)
 
 
 if __name__ == "__main__":
 
-    c = Cloud()
-    c.cloud(read_files("data/1/"))
+    DATA_DIRECTORY = "data/1"
+    texts, categories = load_data(DATA_DIRECTORY)
+
+    plagiarism_texts = [texts[i] for i in range(len(texts)) if categories[i] == 1]
+    non_plagiarism_texts = [texts[i] for i in range(len(texts)) if categories[i] == 0]
+
+    tokenizer = Tokenizer()
+
+    texts_tokens = [tokenizer.tokenize(text) for text in texts]
+    plagiarism_tokens = [tokenizer.tokenize(text) for text in plagiarism_texts]
+    plagiarism_tokens = [tokenizer.tokenize(text) for text in plagiarism_texts]
+    non_plagiarism_tokens = [tokenizer.tokenize(text) for text in non_plagiarism_texts]
+
+    texts_tokenized = [token for tokens in texts_tokens for token in tokens]
+    plagiarism_texts_tokenized = [token for tokens in plagiarism_tokens for token in tokens]
+    non_plagiarism_texts_tokenized = [token for tokens in non_plagiarism_tokens for token in tokens]
+
+    cloud = Cloud()
+    cloud.wordcloud(texts_tokenized, title="All texts")
+    cloud.wordcloud(plagiarism_texts_tokenized, non_plagiarism_texts_tokenized, title="Plagiarism texts")
+    cloud.wordcloud(non_plagiarism_texts_tokenized, plagiarism_texts_tokenized, title=" Non Plagiarism texts")
