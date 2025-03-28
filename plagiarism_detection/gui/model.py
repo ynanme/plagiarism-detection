@@ -1,8 +1,11 @@
+import numpy as np
+
 from experimentations.experiment_manager import ExperimentManager
+from experimentations.metrics import Metrics
 from model.classifiers.naive_bayes import NaiveBayesClassifier
 from model.classifiers.perceptron import PerceptronClassifier
 from model.classifiers.logistic_regression import LogisticRegressionClassifier
-from model.classifiers.decision_tree import DecisionTreeClassifier
+from model.classifiers.decision_tree import DecisionTree
 from model.classifiers.ada_boost import AdaBoost
 from model.featurizers.count_vector import CountVectorFeaturizer
 from model.featurizers.tfidf import TfidfFeaturizer
@@ -34,15 +37,22 @@ class Model ():
         return self.detectors_count
 
     def add_detector (self):
-        self.experiment_manager.add_detector(self.detector_builder.build(), self.get_new_detector_name())
-        print(self.experiment_manager)
-
-    def add_detector_to_experiments (self):
         detector = self.detector_builder.build()
         name = self.get_new_detector_name()
         self.experiment_manager.add_detector(detector, name)
-        self._last_experiment["results"] = [self.experiment_manager.run_on_untrained()]
         self._last_experiment["infos"] = [(name, detector.__str__())]
+
+    def add_detectors_to_experiments (self):
+        self._last_experiment["results"] = []
+        self._last_experiment["results"].append(self.experiment_manager.rank_detectors())
+
+    def clear (self):
+        self.experiment_manager.remove_all_detectors()
+        self.detectors_count = 0
+        self._last_experiment = {
+            "infos": [],
+            "results": []
+        }
 
     def get_last_experiment (self):
         return self._last_experiment
@@ -64,8 +74,6 @@ class DetectorBuilder ():
             TOLERANCE_REF: TOLERANCE_DEFAULT,
             PATIENCE_REF: PATIENCE_DEFAULT,
             CRITERION_REF: CRITERION_DEFAULT,
-            BAG_BOOST_REF: CRITERION_DEFAULT,
-            N_ESTIMATORS_REF: N_ESTIMATORS_DEFAULT
         }
         intval = lambda x: self.is_number(x, int)
         floatval = lambda x: self.is_number(x, float)
@@ -76,7 +84,6 @@ class DetectorBuilder ():
             THRESHOLD_REF: floatval,
             TOLERANCE_REF: floatval,
             PATIENCE_REF: floatval,
-            N_ESTIMATORS_REF: floatval
         }
 
     def is_number (self, obj, type_):
@@ -120,11 +127,7 @@ class DetectorBuilder ():
         elif self.attributes[CLASSIFIER_REF] == LOGISTIC_DES:
             base_model = LogisticRegressionClassifier(learning_rate=self.attributes[LEARNING_RATE_REF], epochs=self.attributes[EPOCHS_REF], threshold=self.attributes[THRESHOLD_REF])
         elif self.attributes[CLASSIFIER_REF] == DECISION_TREE_DES:
-            base_model = DecisionTreeClassifier(max_depth=self.attributes[MAX_DEPTH_REF], criterion=self.attributes[CRITERION_REF])
-        if self.attributes[BAG_BOOST_REF] == ADA_BOOST_DES:
-            return AdaBoost(base_model=base_model, models_count=self.attributes[N_ESTIMATORS_REF])
-        if self.attributes[BAG_BOOST_REF] == BAGGING_DES:
-            return AdaBoost(base_model=base_model, models_count=self.attributes[N_ESTIMATORS_REF])
+            base_model = DecisionTree(max_depth=self.attributes[MAX_DEPTH_REF], criterion=self.attributes[CRITERION_REF])
         return base_model
 
     

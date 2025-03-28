@@ -2,6 +2,7 @@ import tkinter as tk
 import matplotlib.pyplot as plt
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.ticker as ticker
 
 from gui.config import *
 
@@ -11,23 +12,15 @@ class View (ttk.Frame):
     def __init__ (self, parent, actions):
         super().__init__(parent)
         self.home_screen = HomeScreen(self, actions["home"])
-        self.detector_screen = DetectorScreen(self, actions["detector"])
         self.experiments_screen = ExperimentsScreen(self, actions["experiments"])
         self.pack()
 
     def show_home (self):
-        self.detector_screen.pack_forget()
         self.experiments_screen.pack_forget()
         self.home_screen.pack()
 
-    def show_detector (self):
-        self.home_screen.pack_forget()
-        self.experiments_screen.pack_forget()
-        self.detector_screen.pack()
-
     def show_experiments (self):
         self.home_screen.pack_forget()
-        self.detector_screen.pack_forget()
         self.experiments_screen.pack()
 
 
@@ -68,9 +61,7 @@ class HomeScreen (ttk.Frame):
 
     def init_buttons (self, actions):
         self.buttons = [
-            ttk.Button(self, text="Detector", command=actions[0]),
-            ttk.Button(self, text="Experimentations", command=actions[1]),
-            ttk.Button(self, text="Quit", command=actions[2])
+            ttk.Button(self, text="Experimentations", command=actions[0]),
         ]
     
     def pack_buttons (self):
@@ -79,21 +70,19 @@ class HomeScreen (ttk.Frame):
 
 
 
-class DetectorScreen (ttk.Frame):
-
-    def __init__ (self, parent, config_actions):
-        super().__init__(parent)
-        self.config_frame = DetectorConfigFrame(self, config_actions)
-        self.config_frame.pack()
-
-
 class ExperimentsScreen (GridFrame):
 
     def __init__ (self, parent, detector_config_actions):
         super().__init__(parent)
-        self.detector_config_frame = DetectorConfigFrame(self, detector_config_actions)
         self.experiments_frame = ExperimentsFrame(self, detector_config_actions)
+        self.new_detector = detector_config_actions[1]
+        detector_config_actions[1] = self.add_detector
+        self.detector_config_frame = DetectorConfigFrame(self, detector_config_actions)
         self.pack_grid("column", [self.detector_config_frame, self.experiments_frame], [2, 8])
+        
+    def add_detector (self):
+        last = self.new_detector()
+        self.experiments_frame.add_infos(last["infos"])
 
 
 
@@ -102,7 +91,7 @@ class DetectorConfigFrame (ttk.Frame):
     def __init__ (self, parent, actions):
         super().__init__(parent)
         self.init_configs(actions)
-        self.adding_detector_button = ttk.Button(self, text="Ajouter", command=actions[1])
+        self.adding_detector_button = ttk.Button(self, text="Add", command=actions[1])
         self.adding_detector_button.pack()
 
     def init_configs (self, actions):
@@ -122,35 +111,40 @@ class ExperimentsFrame (ttk.Frame):
     def __init__ (self, parent, actions):
         super().__init__(parent)
         self.plots_frame = PlotFrame(self)
-        self.launch_experiment = actions[1]
-        self.plots_frame.pack()
-        self.adding_detector_button = ttk.Button(self, text="Ajouter", command=self.update_results)
+        self.launch_experiment = actions[2]
+        self.clear_experiments = actions[3]
+        self.footer = ttk.Frame(self)
+        self.adding_detector_button = ttk.Button(self.footer, text="Launch", command=self.update_results)
         self.adding_detector_button.pack()
-        self.clearing_button = ttk.Button(self, text="Clear", command=self.clear)
+        self.clearing_button = ttk.Button(self.footer, text="Clear", command=self.clear)
         self.clearing_button.pack()
         self.init_infos_frame()
+        self.plots_frame.pack()
+        self.footer.pack()
 
     def init_infos_frame (self):
-        self.detectors_infos_frame = ListFrame(self, "CURRENT DETECTORS")
+        self.detectors_infos_frame = ListFrame(self.footer, "CURRENT DETECTORS")
         self.detectors_infos_frame.pack()
 
     def update_results (self):
         experiment = self.launch_experiment()
-        self.draw_plots(experiment["results"])
-        self.add_infos(experiment["infos"])
+        self.draw_scores(experiment["results"][0])
+        self.footer.pack()
 
-    def draw_plots (self, results):
-        for X, Y in results:
-            self.plots_frame.add_curve(X, Y)
+    def draw_scores (self, results):
+        scores, rankings = results
+        self.plots_frame.add_scores(scores)
+
 
     def add_infos (self, infos):
         for name, detector in infos:
             self.detectors_infos_frame.add_item(name, detector)
 
     def clear (self):
+        self.clear_experiments()
         self.detectors_infos_frame.pack_forget()
         self.init_infos_frame()
-        self.plots_frame.remove_curves()
+        self.plots_frame.remove_scores()
 
 
 class Param ():
@@ -263,20 +257,34 @@ class PlotFrame (ttk.Frame):
         self.curves = []
         self.canvas.get_tk_widget().pack()
 
-    def add_curve (self, X, Y):
-        #curves = self.ax.plot(X, Y)
-        self.curves = self.ax.plot(X, Y)
-        self.canvas.draw()
+    def pack_plot (self):
+        self.canvas.get_tk_widget().pack()
 
-    def add_curves (self, X, Ys):
-        for Y in Ys:
-            self.add_curve(X, Y)
-
-    def remove_curves (self):
-        for curve in self.curves:
-            curve.remove()
-            self.ax.legend()
+    def add_scores (self, scores, ranking=False):
+        self.ax.legend().remove()  # Supprime la légende si elle existe
+        if not scores.empty:
+            self.curves = scores.T.plot(kind="bar", ax=self.ax)
+            self.ax.set_title("Scores moyens des détecteurs")
+            self.ax.set_ylabel("Score")
+            self.ax.set_xlabel("Détecteurs")
+            self.ax.legend(title="Métriques")
+            self.ax.grid(axis="y", linestyle="--", alpha=0.7)
+            if ranking:
+                self.ax.invert_yaxis()
+                self.ax.set_title("Classement des détecteurs")
+                self.ax.set_ylabel("Rang (1 = meilleur)")
+                self.ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
             self.canvas.draw()
+
+
+    def remove_scores (self):
+        self.ax.clear()  # Efface tout l'axe
+        self.ax.set_title("")  # Réinitialise le titre
+        self.ax.set_xlabel("")  # Réinitialise le label X
+        self.ax.set_ylabel("")  # Réinitialise le label Y
+        self.ax.legend().remove()  # Supprime la légende si elle existe
+
+        self.canvas.draw()  # Met à jour l'affichage
         self.curves = []
 
 
@@ -317,5 +325,4 @@ class ItemFrame (ttk.Frame):
         self.description_label = ttk.Label(self, text=description)
         self.id_label.pack()
         self.description_label.pack()
-
 

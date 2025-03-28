@@ -17,7 +17,7 @@ class App (tk.Tk):
         self.view = View(self, self.controller.get_actions())
         self.controller.set_view(self.view)
         #self.view.pack()
-        self.controller.control()
+        self.controller.launch_app()
 
 
 

@@ -89,12 +89,41 @@ Le recall (rappel) mesure la proportion de cas de plagiat correctement détecté
 f1_score - 2*(precision+recall)/precision*recall​
 Il fait fait la moyenne harmonique de la précision et du rappel. Formellement, quelle est la capacité de notre modèle à detecter tous les plagiats, sans pour autant accuser à tort les textes qui ne sont pas plagiés
 
+Les VP, FP, VN, et FN pourront par ailleurs être visualiés à l'aide d'une matrice de confusion, matrice de la forme [[VN, FP], [FN, VP]].
+
 
 Quels modèles sont les plus performants pour détecter du plagiat ?
 
+Pour assurer la crédibilité des études réalisées présenté ci-dessous, les résultats présentés ci-dessous pour les évaluations de métriques sont les moyennes obtenues en lançant les expérimentations 1000 fois sur différentes partitions de nos données. Cela a nécessité de gros temps de calculs.
+
+Classifiers
+Occupant une place centrale dans le processus de détection, les classifiers ont été notre premier objet d'expérimentations. Les résultats obtenus classent les 6 classifiers que nous avons implémenté en 3 catégories. La première catégorie, les meilleurs, aux performances pouvant dépasser les 85%. Ce sont là le Naive Bayes qui prouve son efficacité malgré sa forte hypothèse d'indépendance des features, et l'AdaBoost qui montre l'importance de l'attribution de grands poids aux modèles plus performants. Le BaggingClassifier et la Logistic Regression sont aussi performants (environ 75%), mais d'une différence non négligeable par rapport aux premiers et sont donc de la deuxième catégorie. La troisième regroupe donc le Perceptron et les Décision Trees, qui sont le moins adaptés pour notre ensemble de données (perfomances jugées non intéressantes d'environ 60%, et parfois moins).
+
+Featurizers
+Le choix du featurizer n'est pas non plus à négliger. Là encore, c'est la simplicité et l'intuition, notamment des caractéristiques extraites par le CountVectorFeaturizer, qui l'emporte, à la quasi-unanimité des classifiers. L'AdaBoost s'est en effet révelé plus performant avec le TfidfFeaturizer.
+
+Impact des préprocesseurs
+
+Les stop words sont des mots présent très fréquement dans le langage. Ils devraient donc être moins discriminants pour différencier différentes classes de textes. Est ce vraiment le cas ? Pour notre part, enlever ou garder les stopwords lors de la tokenization s'est révelé sans impact significatif. Mais cela est sans doute dû à la taille modeste de notre corpus.
+
+Qu'en est il de la lemmatization ? Au lieu, de considérer les mots, considérons leur forme canonique, qui est plus discriminante, surtout dans le cas de la paraphrase. Mais là aussi, notre corpus n'a pas permis de dégager son éventuel impact.
+
+Impact de l'apprentissage
+Plus un modèle apprend, plus il est performant. C'est une intuition ; et elle a été validée par nos expérimentions. D'éventuels pièges de sur-apprentissage n'ont pas pu être détectés dans notre cas. Les modèles atteignent généralement leur pic de performance après entraînement sur 80 textes (limite fixée pour avoir un corpus de test significatif vu que nous avons 100 textes au total)
+
+Comparaisons avec Scikit
+Nous avons également comparés nos modèles à ceux du module de scikit que nous avons pris comme référence. Cela nous a permis de confirmer la robustesse des modèles que nous avons nous mêmes développés. Car en effet, nos performances sont très proches de ceux de scikit.
 
 
+Interface graphique
 
+Pour réaliser des expérimentations plus facilement, nous avons développer une interface graphique siple à prendre en main. Elle nous permet d'évaluer toutes les métriques mentionnées ci-dessus et de comparer les modèles entre eux. Son point fort est que nous pouvons choisir tous les hyper-paramètres des modèles que nous voulons tester. Augmenter la profondeur des arbres de décisions est il une bonne idée ? Quel est l'impact du learning rate pour un modèle comme le Perceptron ? L'AdaBoost améliore t il vraiment les modèles ? Lesquels significativement ? Les réponses à ces questions pourront être visualisées sur notre interface graphique.
+
+
+Limites
+
+La qualité d'un modèle de détection de plagiat dépend fortement de la qualité du corpus sur lequel il a été entraîné. À celui que nous avons utilisé, nous pouvons faire plus d'une remarque. D'abord, il est de taille assez modeste (seulement 100 textes), et les textes sont aussi de taille modeste vu que sa conception est la réponse à des "short answer question". Ensuite, il est assez spécifique. Il traite de sujets spécifiques, mais en plus liés uniquement aux sciences de l'informatique. Puis, les particpants à sa création sont au nombre de 19 et tous des universitaires. 
+Par ailleurs, il est assez difficile de dire en réalité ce que c'est qu'un texte plagié. Prenons l'exemple du near copy, le plus haut degré de plagiat. Considérons qu'un individu B recopie la production d'un individu A. Comment sans ce contexte pourrait t on dire, en analysant les caractéristiques de ces textes, de surcroît en le faisant faire à un ordinateur, que le texte de B est intrinsinquement plagié et que celui de A non ? Vu que le texte A a été produit par un esprit humain, B l'est aussi ; la copie est l'originale si on ne la sait pas être copie.
 
 
 

@@ -1,28 +1,77 @@
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
+import tkinter as tk
+from tkinter import ttk
 
-# 📌 Prédictions du modèle (exemple)
-y_test = [1, 0, 1, 1, 0, 0, 1, 1, 0, 0]  # 1 = Plagié, 0 = Original
-y_pred = [1, 0, 1, 0, 0, 0, 1, 1, 1, 0]  # Prédictions du modèle
+class CarouselFrame(ttk.Frame):
+    def __init__(self, parent, frames, titles=None):
+        super().__init__(parent)
 
-# 📌 Calcul des métriques
-accuracy = accuracy_score(y_test, y_pred)
-precision = precision_score(y_test, y_pred)
-recall = recall_score(y_test, y_pred)
-f1 = f1_score(y_test, y_pred)
+        self.frames = frames
+        self.titles = titles if titles else [f"Frame {i+1}" for i in range(len(frames))]
+        self.current_index = 0
 
-# 📌 Affichage des résultats
-print(f"Accuracy : {accuracy:.2f}")
-print(f"Précision : {precision:.2f}")
-print(f"Rappel : {recall:.2f}")
-print(f"F1-score : {f1:.2f}")
+        # Header avec Previous, Titre et Next
+        self.header = ttk.Frame(self)
+        self.header.pack(fill="x", padx=10, pady=5)
 
-# 📌 Matrice de confusion
-cm = confusion_matrix(y_test, y_pred)
-plt.figure(figsize=(6,5))
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=["Original", "Plagié"], yticklabels=["Original", "Plagié"])
-plt.xlabel("Prédiction du modèle")
-plt.ylabel("Classe réelle")
-plt.title("Matrice de confusion - Détection de Plagiat")
-plt.show()
+        self.btn_previous = ttk.Button(self.header, text="⬅ Previous", command=self.show_previous)
+        self.btn_previous.pack(side="left")
+
+        self.title_label = ttk.Label(self.header, text=self.titles[self.current_index], anchor="center")
+        self.title_label.pack(side="left", expand=True)
+
+        self.btn_next = ttk.Button(self.header, text="Next ➡", command=self.show_next)
+        self.btn_next.pack(side="right")
+
+        # Conteneur pour afficher les frames
+        self.body = ttk.Frame(self)
+        self.body.pack(fill="both", expand=True)
+
+        # Afficher la première frame
+        self.frames[self.current_index].pack(fill="both", expand=True)
+        self.update_buttons()
+
+    def show_previous(self):
+        """Affiche la frame précédente"""
+        if self.current_index > 0:
+            self.frames[self.current_index].pack_forget()
+            self.current_index -= 1
+            self.frames[self.current_index].pack(fill="both", expand=True)
+            self.title_label.config(text=self.titles[self.current_index])
+            self.update_buttons()
+
+    def show_next(self):
+        """Affiche la frame suivante"""
+        if self.current_index < len(self.frames) - 1:
+            self.frames[self.current_index].pack_forget()
+            self.current_index += 1
+            self.frames[self.current_index].pack(fill="both", expand=True)
+            self.title_label.config(text=self.titles[self.current_index])
+            self.update_buttons()
+
+    def update_buttons(self):
+        """Active/Désactive les boutons en fonction de la position"""
+        self.btn_previous.config(state="normal" if self.current_index > 0 else "disabled")
+        self.btn_next.config(state="normal" if self.current_index < len(self.frames) - 1 else "disabled")
+
+# --- Exemple d'utilisation ---
+if __name__ == "__main__":
+    root = tk.Tk()
+    root.title("CarouselFrame Demo")
+    root.geometry("400x300")
+
+    # Création de plusieurs frames de test
+    frames = [
+        ttk.Frame(root, width=400, height=250),
+        ttk.Frame(root, width=400, height=250),
+        ttk.Frame(root, width=400, height=250)
+    ]
+    
+    # Ajout de labels pour identifier les frames
+    for i, frame in enumerate(frames):
+        label = ttk.Label(frame, text=f"Contenu de la Frame {i+1}", font=("Arial", 14))
+        label.pack(expand=True)
+
+    carousel = CarouselFrame(root, frames, ["Page 1", "Page 2", "Page 3"])
+    carousel.pack(fill="both", expand=True)
+
+    root.mainloop()

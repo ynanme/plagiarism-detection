@@ -18,7 +18,7 @@ class AdaBoost (Classifier):
     
     def fit (self, features_matrix, labels):
 
-        super().__init__()
+        super().fit(features_matrix, labels)
 
         self.models = []
         self.models_weights = []

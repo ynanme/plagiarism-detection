@@ -1,4 +1,4 @@
-from experimentations.experiments import load_data
+from experimentations.experiments_utils import load_data
 from gui.config import *
 
 
@@ -12,29 +12,23 @@ class Controller ():
     def set_view (self, view):
         self._view = view
 
-    def control (self):
+    def launch_app (self):
         self._model.gets_fed(load_data(DATA_DIRECTORY))
         self._view.show_home()
 
 
     def gather_actions (self):
         self._actions = {
-            "home": [self.go_to_detector, self.go_to_experimentations, self.quit],
-            "detector": [self.update_param, self.add_detector],
-            "experiments": [self.update_param, self.add_detector_to_experiments]
+            "home": [self.go_to_experimentations],
+            "experiments": [self.update_param, self.add_detector, self.add_detectors_to_experiments, self.clear_experiments]
         }
     
     def get_actions (self):
         return self._actions
-
-    def go_to_detector (self):
-        self._view.show_detector()
     
     def go_to_experimentations (self):
         self._view.show_experiments()
-    
-    def quit (self):
-        print("Quitted")
+
 
     def update_param (self, id_, value):
         #id_, value = param
@@ -42,7 +36,11 @@ class Controller ():
 
     def add_detector (self):
         self._model.add_detector()
-
-    def add_detector_to_experiments (self):
-        self._model.add_detector_to_experiments()
         return self._model.get_last_experiment()
+
+    def add_detectors_to_experiments (self):
+        self._model.add_detectors_to_experiments()
+        return self._model.get_last_experiment()
+
+    def clear_experiments (self):
+        self._model.clear()

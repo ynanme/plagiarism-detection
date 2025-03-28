@@ -24,7 +24,7 @@ class Cloud:
         occurence = {token: word_occurence[0, i] for token, i in vocabulary.items()}
         return occurence
 
-    def wordcloud(self, documents, documents_to_exclude=[], frequency_diff=500, title="WordCloud"):
+    def wordcloud(self, documents, documents_to_exclude=[], frequency_diff=500, title="WordCloud", saving_results_path=None):
         frequencies = self.get_word_frequencies(documents)
         filtered_frequencies = frequencies
         if len(documents_to_exclude) > 0:
@@ -42,14 +42,17 @@ class Cloud:
         plt.figure(figsize=(40, 30))
         plt.imshow(wordcloud, interpolation="bilinear")
         plt.axis("off")
-        plt.title(title, fontsize=15)
+        plt.title(title, fontsize=75)
+        if saving_results_path is not None:
+            plt.savefig(saving_results_path)
         plt.show()
 
 
 if __name__ == "__main__":
 
-    DATA_DIRECTORY = "data/1"
-    texts, categories = load_data(DATA_DIRECTORY)
+    data_directory = "data/1"
+    results_path = "experiments_results/wordclouds/"
+    texts, categories = load_data(data_directory)
 
     plagiarism_texts = [texts[i] for i in range(len(texts)) if categories[i] == 1]
     non_plagiarism_texts = [texts[i] for i in range(len(texts)) if categories[i] == 0]
@@ -66,6 +69,6 @@ if __name__ == "__main__":
     non_plagiarism_texts_tokenized = [token for tokens in non_plagiarism_tokens for token in tokens]
 
     cloud = Cloud()
-    cloud.wordcloud(texts_tokenized, title="All texts")
-    cloud.wordcloud(plagiarism_texts_tokenized, non_plagiarism_texts_tokenized, title="Plagiarism texts")
-    cloud.wordcloud(non_plagiarism_texts_tokenized, plagiarism_texts_tokenized, title=" Non Plagiarism texts")
+    cloud.wordcloud(texts_tokenized, title="All texts", saving_results_path=f"{results_path}all_texts.png")
+    cloud.wordcloud(plagiarism_texts_tokenized, non_plagiarism_texts_tokenized, title="Plagiarism texts", saving_results_path=f"{results_path}non_plagiarism.png")
+    cloud.wordcloud(non_plagiarism_texts_tokenized, plagiarism_texts_tokenized, title=" Non Plagiarism texts", saving_results_path=f"{results_path}plagiarism.png")
