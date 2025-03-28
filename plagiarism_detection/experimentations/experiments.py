@@ -37,6 +37,12 @@ def get_experiment_file_name ():
     experiments_count += 1
     return f"{results_path}experiment{experiments_count}.png"
 
+def show_groups_of_detectors_scores (all_detectors, training_data_weight, repeat):
+    for detectors in all_detectors:
+        manager = ExperimentManager(detectors, data)
+        scores, rankings = manager.rank_detectors(training_data_weight, repeat)
+        Metrics.plot_scores_and_rankings(scores, rankings, get_experiment_file_name())
+
 
 def compute_detectors_ranks (training_data_weight, repeat):
     detectors = {
@@ -74,10 +80,26 @@ def compare_featurizers (training_data_weight, repeat):
             "bagg_stump_tfidf": PlagiarismDetector(BaggingClassifier(DecisionTreeClassifier(max_depth=1)), TfidfFeaturizer(), Tokenizer())
         }
     ]
-    for detectors in all_detectors:
-        manager = ExperimentManager(detectors, data)
-        scores, rankings = manager.rank_detectors(training_data_weight, repeat)
-        Metrics.plot_scores_and_rankings(scores, rankings, get_experiment_file_name())
+    show_groups_of_detectors_scores(all_detectors, training_data_weight, repeat)
+
+
+def evaluate_ngrams_impact (training_data_weight, repeat):
+    all_detectors = [
+        {
+            "naives_bayes_ngram_1_1": PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(), Tokenizer()),
+            "naives_bayes_ngram_1_2": PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(ngram=[1,2]), Tokenizer()),
+            "naives_bayes_ngram_2_2": PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(ngram=[2,2]), Tokenizer()),
+            "naives_bayes_ngram_1_3": PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(ngram=[1,3]), Tokenizer()),
+            "naives_bayes_ngram_3_3": PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(ngram=[3,3]), Tokenizer()),
+        }, {
+            "ada_boost_ngram_1_1": PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CountVectorFeaturizer(), Tokenizer()),
+            "ada_boost_ngram_1_2": PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CountVectorFeaturizer(ngram=[1,2]), Tokenizer()),
+            "ada_boost_ngram_2_2": PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CountVectorFeaturizer(ngram=[2,2]), Tokenizer()),
+            "ada_boost_ngram_1_3": PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CountVectorFeaturizer(ngram=[1,3]), Tokenizer()),
+            "ada_boost_ngram_3_3": PlagiarismDetector(AdaBoost(DecisionTreeClassifier(max_depth=1), labels_mapping_function=ada_boost_labels_mapping_function), CountVectorFeaturizer(ngram=[3,3]), Tokenizer())
+        }
+    ]
+    show_groups_of_detectors_scores(all_detectors, training_data_weight, repeat)
 
 
 def evaluate_stop_words_impact (training_data_weight, repeat):
@@ -102,10 +124,7 @@ def evaluate_stop_words_impact (training_data_weight, repeat):
             "bagg_stump_kept_sw": PlagiarismDetector(BaggingClassifier(DecisionTreeClassifier(max_depth=1)), CountVectorFeaturizer(), Tokenizer(stop_words=[]))
         }
     ]
-    for detectors in all_detectors:
-        manager = ExperimentManager(detectors, data)
-        scores, rankings = manager.rank_detectors(training_data_weight, repeat)
-        Metrics.plot_scores_and_rankings(scores, rankings, get_experiment_file_name())
+    show_groups_of_detectors_scores(all_detectors, training_data_weight, repeat)
 
 
 def evaluate_lemmatization_impact (training_data_weight, repeat):
@@ -130,10 +149,7 @@ def evaluate_lemmatization_impact (training_data_weight, repeat):
             "bagg_stump_lemmatization": PlagiarismDetector(BaggingClassifier(DecisionTreeClassifier(max_depth=1)), CountVectorFeaturizer(), Tokenizer(lemmatizer=lemmatize))
         }
     ]
-    for detectors in all_detectors:
-        manager = ExperimentManager(detectors, data)
-        scores, rankings = manager.rank_detectors(training_data_weight, repeat)
-        Metrics.plot_scores_and_rankings(scores, rankings, get_experiment_file_name())
+    show_groups_of_detectors_scores(all_detectors, training_data_weight, repeat)
 
 
 def compare_with_scikit (training_data_weight, repeat):
@@ -158,10 +174,7 @@ def compare_with_scikit (training_data_weight, repeat):
             "bagg_stump_scikit": PlagiarismDetector(BaggingClassifier(DecisionTreeClassifier(max_depth=1)), CountVectorizer(), Tokenizer())
         }
     ]
-    for detectors in all_detectors:
-        manager = ExperimentManager(detectors, data)
-        scores, rankings = manager.rank_detectors(training_data_weight, repeat)
-        Metrics.plot_scores_and_rankings(scores, rankings, get_experiment_file_name())
+    show_groups_of_detectors_scores(all_detectors, training_data_weight, repeat)
 
 
 def compute_detectors_learning (training_data_weight, batch_size_increment):
@@ -198,11 +211,12 @@ def show_confusion_matrixs (training_data_weight):
 if __name__ == "__main__":
 
     training_data_weight = 0.8
-    repeat = 10
+    repeat = 3
     batch_size_increment = 10
 
     compute_detectors_ranks(training_data_weight, repeat)
     compare_featurizers(training_data_weight, repeat)
+    evaluate_ngrams_impact(training_data_weight, repeat)
     evaluate_stop_words_impact(training_data_weight, repeat)
     evaluate_lemmatization_impact(training_data_weight, repeat)
     compare_with_scikit(training_data_weight, repeat)

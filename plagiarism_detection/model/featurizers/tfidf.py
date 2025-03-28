@@ -73,3 +73,6 @@ class TfidfFeaturizer (Featurizer):
                      tfidf_matrix[i, self.vocabulary[token]] = tf * idf
         return tfidf_matrix
 
+    
+    def __str__ (self):
+        return "TFIDF"

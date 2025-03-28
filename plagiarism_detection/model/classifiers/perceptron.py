@@ -81,3 +81,7 @@ class PerceptronClassifier (Classifier):
         predictions = np.sign(z)
         #print(predictions)
         return predictions
+
+
+    def __str__ (self):
+        return f"Perceptron(learning_rate={self.learning_rate}, epochs={self.epochs}, patience={self.patience}, tolerance={self.tolerance})"

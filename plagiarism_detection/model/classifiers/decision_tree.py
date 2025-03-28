@@ -271,3 +271,7 @@ class DecisionTree (Classifier):
         for value, child in node.children.items():
             print(f"{indent} ├── Value: {value}")
             self.print_tree(child, depth + 1)  
+
+
+    def __str__ (self):
+        return f"DecisionTree(depth={self.max_depth}, criterion={self.criterion})"

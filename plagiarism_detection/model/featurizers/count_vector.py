@@ -61,3 +61,6 @@ class CountVectorFeaturizer (Featurizer):
         
         return count_matrix
 
+    
+    def __str__ (self):
+        return "CountVector"

@@ -21,7 +21,7 @@ class View (ttk.Frame):
 
     def show_experiments (self):
         self.home_screen.pack_forget()
-        self.experiments_screen.pack()
+        self.experiments_screen.pack(expand=True, fill="both")
 
 
 
@@ -322,7 +322,7 @@ class ItemFrame (ttk.Frame):
         super().__init__(parent)
         self._id = id_
         self.id_label = ttk.Label(self, text=self._id)
-        self.description_label = ttk.Label(self, text=description)
+        self.description_label = ttk.Label(self, text=description, wraplength=1500)
         self.id_label.pack()
         self.description_label.pack()
 

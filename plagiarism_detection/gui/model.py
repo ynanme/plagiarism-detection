@@ -93,10 +93,8 @@ class DetectorBuilder ():
             return False
 
     def set_ (self, attribute_ref, value):
-        print(attribute_ref, value)
         if attribute_ref in self.validators:
             valid = self.validators[attribute_ref](value)
-            print("valid", valid)
             if valid != False:
                 self.attributes[attribute_ref] = valid
         elif attribute_ref in self.attributes:

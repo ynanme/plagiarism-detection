@@ -90,3 +90,6 @@ class LogisticRegressionClassifier (Classifier):
         #print(probabilities)
         return (probabilities >= self.threshold).astype(int)
 
+
+    def __str__ (self):
+        return f"LogisticRegression(learning_rate={self.learning_rate}, epochs={self.epochs}, threshold={self.threshold}, patience={self.patience}, tolerance={self.tolerance})"

@@ -1,0 +1,214 @@
+\section{Experimentations}
+
+\subsection{Pré-analyse du corpus de données utilsé}
+
+Avant de se lancer dans les différentes implémentations et évaluations de nos modèles, il a été nécessaire d'analyser le corpus de données qui nous a été fourni. De cela se sont dégagés la structure du corpus, les types de textes inclus, les différents degrés de plagiats impliqués ...
+
+\subsubsection{Description}
+
+Le corpus, en anglais, a été créé expressement pour des études sur la détection de plagiat par le département Informatique de l'université de Sheffield . Il a été demandé à des étudiants de rédiger des réponses courtes à des questions liées à l'informatique qu'étaient les suivantes : "What is inheritance in object oriented programming?", "Explain the PageRank algorithm that is used by the Google search engine.", "Explain the Vector Space Model that is used for Information Retrieval.", "Explain Bayes Theorem from probability theory." et "What is dynamic programming?". Pour simuler du plagiat, certains étudiants avaient été orientés vers la source Wikipédia traitant du sujet qui leur avait été confié. Et pour simuler le non plagiat, il a été tout simplement demandé à d'autres d'utiliser leurs propres connaissances. Les différents degrés de plagiat suivant ont été donc définis :
+\begin{itemize}
+    \item \textbf{Near copy} : demande de copier tout simplement de la source
+    \item \textbf{Light revision} : demande de baser la réponse sur la source, avec autorisation de modifier légèrement sa structure
+    \item \textbf{Heavy revision} : demande de paraphraser la source, d'utiliser ses propres structures
+    \item \textbf{Non-plagiarism} : demande d'utiliser ses propres connaissances pour répondre à la question (possibilité d'utiliser d'autres ressources mais autres que la source Wikipédia)
+    \item \textbf{Original} : les textes sources
+\end{itemize}
+
+\subsubsection{Tailles du corpus}
+
+Voici le profil du corpus, décrit par l'université : 
+\begin{quote}
+    "Le corpus contient 100 documents (95 réponses fournies par les 19 participants et les cinq articles sources issus de Wikipédia). Les textes des réponses contiennent un total de 19 559 mots (22 230 tokens uniques). Les pages Wikipédia totalisent 14 242 mots après conversion en texte brut et suppression des références aux URL. La longueur moyenne des fichiers dans le corpus est de 208 mots (écart-type de 64,91) et de 113 tokens uniques (écart-type de 30,11). 59 des textes (62 \%) ont été rédigés par des anglophones natifs. La langue maternelle variait pour les auteurs des autres textes. Pour chaque tâche d’apprentissage, il y a 19 exemples de révision lourde, 19 exemples de révision légère, 19 exemples de copie proche et 38 exemples non plagiés, écrits indépendamment de la source Wikipédia."
+\end{quote}
+
+\subsubsection{Qu'avons-nous analysé ?}
+
+Après lectures des textes produits par les étudiants, l'aspect le plus visible (pour l'esprit humain) du corpus est que pour un sujet donné, les textes se ressemblent tous, de l'original à la copie. Ce qui est tout de même logique. Par contre, pour les textes plagiés, les paraphrases de l'original ont été facilement identifiables ; mais encore une fois, on le voit parce qu'on est humain. Pourrait-on faire voir à l'ordinateur de pareilles paraphrases ? Il a fallu voir quels autres caractéristiques pouvaient être discrimantes à part ces aspects intuitifs. 
+
+Voir quels mots revenaient le plus dans les textes plagiés, et lesquels étaient plus présents dans les textes non plagiés nous a semblé le meilleur choix. Ces mots étaient aux premiers abords les mêmes pour les deux classes, bien évidemment, vu que les textes traitaient tous des mêmes sujets. Ils ont donc été jugés non discriminants et retirés des résultats. Les résultats exploitables obtenus ont été représentés sous forme de nuages de mots (wordclouds) que voici : 
+
+\begin{figure}[H]
+            \centering
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/plagiarism_wc.png}
+                \caption{Wordcloud des textes plagiés}
+                \label{fig:original}
+            \end{subfigure}
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/non_plagiarism_wc.png}
+                \caption{Wordcloud des textes non plagiés}
+                \label{fig:original}
+            \end{subfigure}
+            \caption{ Wordclouds }
+            \label{fig:cam_man_hn}
+\end{figure}
+
+Aussi, il a fallu déterminer la meilleure frontière entre plagiat et pas plagiat à partir des cinq classes mentionnées ci-dessus. L'intuition considérera une "heavy revision" comme du non plagiat, mais la pré-analyse nous a fait remarquer des textes comme celui du \textit{g2pC-taskd} à propos du théorème de Naive Bayes, qui est une "heavy revision" de l'original \textit{orig-taskd}, mais qui a une structure trop identique par rapport à son original. Nous avons donc considéré comme non plagiat seuls les textes originaux et ceux marqués "non plagiarism".
+
+\subsection{Évaluations de nos modèles}
+
+\subsubsection{Métriques évaluées}
+
+Il a fallu évaluer plus d'une métrique, une métrique seule ne pouvant nous décrire qu'un seul aspect de nos modèles. Cela a inclut l'étude des vrais positifs (VP), des faux positifs (FP), des vrais négatifs (VN) et des faux négatifs (FN), les positifs étant les plagiats et les négatifs les non plagiats.
+
+\paragraph{Accuracy}
+\[
+\text{accuracy} = \frac{\text{nombre\_prédictions\_correctes}}{\text{nombre\_de\_prédictions\_totales}}
+\]
+C'est la métrique la plus intuitive. Elle mesure la proportion de labels correctement prédits par notre modèle.
+
+\paragraph{Balanced Accuracy}
+\begin{equation}
+\text{recall\_pos} = \frac{TP}{TP + FN}
+\end{equation}
+
+\begin{equation}
+\text{recall\_neg} = \frac{TN}{TN + FP}
+\end{equation}
+
+\begin{equation}
+\text{Balanced Recall} = \frac{\text{recall\_pos} + \text{recall\_neg}}{2}
+\end{equation}
+L'accuracy ci-dessus peut être parfois très trompeuse, notamment lorsque les classes sont déséquilibrées. Par exemple, évalué sur un corpus de test contenant 90 textes plagiés et 10 textes non plagiés, un modèle naïf qui labellise tous les textes comme plagiés aura une accuracy de 90\%. Le rôle de la balanced accuracy est de corriger cet effet de déséquilibre en faisant la moyenne des taux de détection des deux classes.
+
+\paragraph{Précision}
+\[
+\text{precision} = \frac{\text{VP}}{\text{VP} + \text{FP}}
+\]
+La précision est la fiabilité du modèle sur ses prédictions positives. Autrement dit, sa capacité à ne pas labelliser comme plagié un texte qui ne l'est pas.
+
+\paragraph{Recall}
+\[
+\text{recall} = \frac{\text{VP}}{\text{VP} + \text{FN}}
+\]
+Le recall (rappel) mesure la proportion de cas de plagiat correctement détectés par le modèle. C'est la capacité du modèle à détecter tous les plagiats.
+
+\paragraph{F1-score}
+\[
+\text{F1-score} = 2 \times \frac{\text{precision} \times \text{recall}}{\text{precision} + \text{recall}}
+\]
+Il fait la moyenne harmonique de la précision et du rappel. Formellement, il mesure la capacité de notre modèle à détecter tous les plagiats sans pour autant accuser à tort les textes qui ne sont pas plagiés.
+
+Les VP, FP, VN et FN pourront par ailleurs être visualisés à l'aide d'une matrice de confusion, matrice de la forme :
+\[
+\begin{bmatrix}
+\text{VN} & \text{FP} \\
+\text{FN} & \text{VP}
+\end{bmatrix}
+\]
+
+\begin{figure}[H]
+            \centering
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/experiment27.png}
+                \caption{Naive Bayes}
+                \label{fig:original}
+            \end{subfigure}
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/experiment28.png}
+                \caption{Logistic Regression}
+                \label{fig:original}
+            \end{subfigure}
+            \caption{ Matrices de confusions après train sur 80 textes }
+            \label{fig:cam_man_hn}
+\end{figure}
+
+
+\subsubsection{Quels modèles sont les plus performants pour détecter du plagiat ?}
+
+Pour assurer la crédibilité des études réalisées présentées ci-dessous, les résultats présentés ci-dessous pour les évaluations de métriques sont les moyennes obtenues en lançant les expérimentations 1000 fois sur différentes partitions de nos données. Cela a nécessité de gros temps de calculs.
+
+\paragraph{Classifiers}
+Occupant une place centrale dans le processus de détection, les classifiers ont été notre premier objet d'expérimentations. Les résultats obtenus classent les 6 classifiers que nous avons implémentés en 3 catégories. La première catégorie, les meilleurs, aux performances pouvant dépasser les 85\%. Ce sont là le Naive Bayes qui prouve son efficacité malgré sa forte hypothèse d'indépendance des features, et l'AdaBoost qui montre l'importance de l'attribution de grands poids aux modèles plus performants. Le BaggingClassifier et la Logistic Regression sont aussi performants (environ 75\%), mais d'une différence non négligeable par rapport aux premiers et sont donc de la deuxième catégorie. La troisième regroupe donc le Perceptron et les Décision Trees, qui sont le moins adaptés pour notre ensemble de données (performances jugées non intéressantes d'environ 60\%, et parfois moins).
+
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{rapport/images/experiment1.png}
+\caption{Comparaisons des classifiers}
+\end{figure}
+
+\paragraph{Featurizers}
+Le choix du featurizer n'est pas non plus à négliger. Là encore, c'est la simplicité et l'intuition, notamment des caractéristiques extraites par le CountVectorFeaturizer, qui l'emporte, à la quasi-unanimité des classifiers, mais légèrement.
+
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{rapport/images/experiment6.png}
+\caption{Comparaison de Count Vector et TFIDF avec AdaBoost}
+\end{figure}
+
+Par ailleurs, pourrait-on au delà du choix des featurizers, rendre les featurizers eux-mêmes plus performants en les faisant travailler sur des sacs de mots de tailles variées et plus grandes ? Pour cela nous avons testé nos featurizers avec différents ngrams. L'extraction de caractéristiques sur des mots seuls (ngram [1,1]) s'est révélée être la moins efficace sans pour autant être significativement plus mauvaise.
+
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{rapport/images/experiment29.png}
+\caption{Comparaisons sur les ngrams avec CountVectorizer et Adaboost}
+\end{figure}
+
+
+\paragraph{Impact des préprocesseurs}
+
+Les stop words sont des mots présents très fréquemment dans le langage. Ils devraient donc être moins discriminants pour différencier différentes classes de textes. Est-ce vraiment le cas ? Pour notre part, enlever ou garder les stopwords lors de la tokenization s'est révélé sans impact significatif. Mais cela est sans doute dû à la taille modeste de notre corpus.
+
+Qu'en est-il de la lemmatization ? Au lieu de considérer les mots, considérons leur forme canonique, qui est plus discriminante, surtout dans le cas de la paraphrase. Mais là aussi, notre corpus n'a pas permis de dégager son éventuel impact.
+
+\begin{figure}[H]
+            \centering
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/sw.png}
+                \caption{Suppression de stopwords}
+                \label{fig:original}
+            \end{subfigure}
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/lemma.png}
+                \caption{Lemmatization}
+                \label{fig:original}
+            \end{subfigure}
+            \caption{ Impact du préprocessing }
+            \label{fig:cam_man_hn}
+\end{figure}
+
+\paragraph{Impact de l'apprentissage}
+Plus un modèle apprend, plus il est performant. C'est une intuition ; et elle a été validée par nos expérimentations. D'éventuels pièges de sur-apprentissage n'ont pas pu être détectés dans notre cas. Les modèles atteignent généralement leur pic de performance après entraînement sur 80 textes (limite fixée pour avoir un corpus de test significatif vu que nous avons 100 textes au total).
+
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{rapport/images/experiment26.png}
+\caption{Mesures de l'impact de l'apprentissage}
+\end{figure}
+
+\paragraph{Comparaisons avec Scikit}
+Nous avons également comparé nos modèles à ceux du module de scikit que nous avons pris comme référence. Cela nous a permis de confirmer la robustesse des modèles que nous avons nous-mêmes développés. Car en effet, nos performances sont très proches de celles de scikit.
+
+\begin{figure}[H]
+            \centering
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/sk_nb.png}
+                \caption{Naive Bayes}
+                \label{fig:original}
+            \end{subfigure}
+            \begin{subfigure}[b]{0.4\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{rapport/images/sk_ada.png}
+                \caption{AdaBoost}
+                \label{fig:original}
+            \end{subfigure}
+            \caption{ Comparaisons avec les modèles de scikit }
+            \label{fig:cam_man_hn}
+\end{figure}
+
+\subsection{Interface graphique}
+
+Pour réaliser des expérimentations plus facilement, nous avons développé une interface graphique simple à prendre en main. Elle nous permet d'évaluer toutes les métriques mentionnées ci-dessus et de comparer les modèles entre eux. Son point fort est que nous pouvons choisir tous les hyper-paramètres des modèles que nous voulons tester. Augmenter la profondeur des arbres de décisions est-il une bonne idée ? Quel est l'impact du learning rate pour un modèle comme le Perceptron ou la logistic regression ? Les réponses à ces questions pourront être visualisées sur notre interface graphique.
+
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{rapport/images/gui.png}
+\caption{Notre GUI}
+\end{figure}
+
+\subsection{Limites}
+
+La qualité d'un modèle de détection de plagiat dépend fortement de la qualité du corpus sur lequel il a été entraîné. À celui que nous avons utilisé, nous pouvons faire plus d'une remarque. D'abord, il est de taille assez modeste (seulement 100 textes), et les textes sont aussi de taille modeste vu que sa conception est la réponse à des "short answer question". Ensuite, il est assez spécifique. Il traite de sujets spécifiques, mais en plus liés uniquement aux sciences de l'informatique. Puis, les participants à sa création sont au nombre de 19 et tous des universitaires. Par ailleurs, il est assez difficile de dire en réalité ce que c'est qu'un texte plagié. Prenons l'exemple du near copy, le plus haut degré de plagiat. Considérons qu'un individu B recopie la production d'un individu A. Comment sans ce contexte pourrait-on dire, en analysant les caractéristiques de ces textes, de surcroît en le faisant faire à un ordinateur, que le texte de B est intrinsèquement plagié et que celui de A non ? Vu que le texte A a été produit par un esprit humain, B l'est aussi ; la copie est l'originale si on ne la sait pas être copie.

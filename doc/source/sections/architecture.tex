@@ -1,0 +1,52 @@
+\newpage
+\section{Architecture}
+
+\subsection{Paquetage}
+
+Répondre aux objecttifs de notre projet a nécessité d'organiser notre travail en plusieurs packages et sous packages, chacun ayant un rôle bien défini.
+
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{rapport/images/paquetage.png}
+\caption{Paquetage}
+\end{figure}
+\begin{figure}[H]
+    \includegraphics[width=\textwidth]{rapport/images/classes_diag.png}
+\caption{Diagramme de classes}
+\end{figure}
+
+\subsubsection{model} 
+C'est le package central du fait qu'il contient toute la logique métier du détecteur de plagiat implémenté, des pré-processeurs de texte aux classifiers. Il est lui-même composé de 4 sous packages.
+
+\paragraph{preprocessors}  
+Les outils nécessaire au pré-traitement de texte, notamment le Tokenizer et le lemmatizer, sont contenu dans ce package.  
+Le Tokenizer a pour fonction la première étape de notre chaîne de traitement. À partir d'un texte brut, quel sont les élements (mots ou sac de mots) que nous jugeons pertinents pour une extraction de caractéristiques. Pour cela, il dispose de la méthode \texttt{tokenize} qui prend en entrée le texte à tokenizer. Son attribut \texttt{stop\_words} (qui est initialisé par défaut aux stopwords anglais du module \texttt{nltk}), nous permettra de préciser quels mots ne sont pas nécessaires pour l'étape suivante. Quant à son \texttt{lemmatizer} (une fonction, initialisée à \texttt{None}), il nous permettra d'appliquer ou pas d'appliquer la lemmatization aux mots du texte traité.  
+Notre lemmatizer est la fonction \texttt{lemmatize} du fichier \texttt{lemmatizer.py} qui prend en entrée une liste de mots et renvoie leur formes canoniques. Elle utilise pour cela le module \texttt{spacy}.
+
+\paragraph{featurizers}  
+Après la tokenization, l'extraction des caractéristiques sur les tokens générés est assurée par les featurizers, contenus dans ce package. Leur modèle est établi par la classe abstraite \texttt{Featurizer}. Un featurizer stocke le vocabulaire qu'il a appris, pour le réutiliser lors de l'extraction de traits, et dispose d'un tokenizer pour s'assurer que les éléments traités soient des tokens ; d'où ses attributs \texttt{vocabulary} et \texttt{tokenizer}. \texttt{n\_grams} est son attribut qui nous permettra de préciser les tailles des mots de sacs voulus. Quant aux méthodes, on peut lui faire apprendre du vocabulaire en lui donnant une liste de textes (méthode \texttt{fit}) et lui demander d'extraire les caractéristiques correspondant à une liste de textes (méthode \texttt{transform}). Sa méthode \texttt{fit\_transform} combine les deux étapes mentionnées précédemment. Les classes et \texttt{CountVectorFeaturizer} et \texttt{TfidfFeaturizer} sont les deux featurizers implémentés.
+
+\paragraph{classifiers}  
+C'est la prochaine étape, classification des textes (en réalité des caractéristiques extraites), qu'assure cet package. Un classifier, dont le modèle est défini par la classe abstraite \texttt{Classifier} peut être entraîné sur un ensemble de textes. C'est le rôle de sa méthode \texttt{fit}. Pour cela, on lui fournit la matrice de features où chaque ligne représente les caractéristique d'un texte, puis les classes auxqueles appartiennent ces textes. On pourra ensuite lui demander de déterminer la classe d'un ensemble de textes (méthode \texttt{predict}) en lui fournissant les matrices de features. Il stocke par ailleurs dans un attribut \texttt{classes} les classes rencontrées lors de son entraînement.
+
+\paragraph{pipeline}  
+Ce package contient notre détecteur de plagiat (classe \texttt{PlagiarismDetector}) qui met en place la chaîne de traitement du modèle de détection, du texte brut au résultat plagiat/pas plagiat. Ce détecteur est constitué d'un tokenizer, d'un featurizer et d'un classifier. Ces sont ses attributs. Il dispose de la méthode \texttt{train} pour s'entraîner sur des textes (cela consistera en l'entraînement, \texttt{fit}, de son featurizer et de sont classifier) et de la méthode \texttt{classify} pour déterminer si un texte est plagié ou pas.
+
+\subsubsection{experiments}  
+Les expérimentations réalisées sur notre modèles et les outils développés pour la cause, notamment le manager d'experimentations (\texttt{ExperimentManager}), l'évaluateur des métriques (\texttt{Metrics}) se trouvent dans ce package. \texttt{Metrics} dispose de méthodes statiques permettant d'évaluer l'accuracy, la précision, le rappel, la balanced accuracy et le score f1 d'un modèle. \texttt{ExperimentsManager} permettra lui de lancer les expériences sur les modèles évalués et les données qui lui ont été fournis. Le fichier \texttt{experiments.py} contient les expérimentations à proprement parler.
+
+\subsubsection{gui}  
+C'est le package dédié à la construction de notre interface graphique. Elle est conçue selon l'architecture MVC.
+
+\subsubsection{util}  
+Nous avons nécessiter des utilitaires qu'il a fallu nous même définir. Elles sont contenues dans le fichier \texttt{util.py}, seul fichier du package. Il s'agit entre autres de lecture de fichier ou de dossier (\texttt{read\_file} et \texttt{read\_files}) et de la partition d'ensemble (\texttt{partition}).
+
+\subsubsection{tests}  
+Des tests unitaires ont été réalisés sur les éléments non triviaux de notre modèle, notamment la tokenization et la featurization.
+
+\subsection{Chaîne de traitement}  
+La description du paquetage ci-dessus dessine déjà la chaîne de traitement mise en place. Pour la classification de textes, lorsqu'un détecteur reçoit le texte à classifier, il est transformer en tokens (le featurizer assure en réalité cette étape) que le featurizer utilisera pour extraire les caractéristiques qui seront transmises au classifier pour la prédiction. Pour ce qui est des expérimentations, la chaîne de traitement commence par le choix des modèles à évaluer qui sont stockés par le manager d'expérimenattions. C'est ce dernier qui assure la pipeline du modèle de détections puis donne les performances des modèles qui pourront être visualisées.
+
+\begin{figure}[H]
+\includegraphics[width=\textwidth]{rapport/images/pipelines.png}
+\caption{Pipelines}
+\end{figure}

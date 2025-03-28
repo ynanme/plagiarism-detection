@@ -98,3 +98,7 @@ class NaiveBayesClassifier (Classifier):
             word_probabilities[cls] = (word_counts + 1) / (total_count + vocab_size)
 
         return word_probabilities
+
+
+    def __str__ (self):
+        return "Naive Bayes"
