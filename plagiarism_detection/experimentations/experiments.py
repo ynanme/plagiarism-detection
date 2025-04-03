@@ -152,6 +152,16 @@ def evaluate_lemmatization_impact (training_data_weight, repeat):
     show_groups_of_detectors_scores(all_detectors, training_data_weight, repeat)
 
 
+def evaluate_customed_featurizer (training_data_weight, repeat):
+    detectors = {
+        "naives_bayes": PlagiarismDetector(NaiveBayesClassifier(), CountVectorFeaturizer(), Tokenizer()),
+        "naives_bayes_c": PlagiarismDetector(NaiveBayesClassifier(), CustomedFeaturizer(), Tokenizer())
+    }
+    manager = ExperimentManager(detectors, data)
+    scores, rankings = manager.rank_detectors(training_data_weight, repeat)
+    Metrics.plot_scores_and_rankings(scores, rankings, get_experiment_file_name())
+
+
 def compare_with_scikit (training_data_weight, repeat):
     all_detectors = [
         {
@@ -210,15 +220,16 @@ def show_confusion_matrixs (training_data_weight):
 
 if __name__ == "__main__":
 
-    training_data_weight = 0.8
-    repeat = 3
+    training_data_weight = 0.6
+    repeat = 1000
     batch_size_increment = 10
 
     compute_detectors_ranks(training_data_weight, repeat)
-    compare_featurizers(training_data_weight, repeat)
+    """compare_featurizers(training_data_weight, repeat)
     evaluate_ngrams_impact(training_data_weight, repeat)
     evaluate_stop_words_impact(training_data_weight, repeat)
     evaluate_lemmatization_impact(training_data_weight, repeat)
+    evaluate_customed_featurizer(training_data_weight, repeat)
     compare_with_scikit(training_data_weight, repeat)
     compute_detectors_learning(training_data_weight, batch_size_increment)
-    show_confusion_matrixs(training_data_weight)
+    show_confusion_matrixs(training_data_weight)"""

@@ -37,4 +37,4 @@ class CustomedFeaturizer (Featurizer):
         pass
 
     def transform (self, documents):
-        return np.repeat(np.array([len(document) for document in documents])[:,np.newaxis], 3, axis=1)
+        return np.repeat(np.array([len(document) for document in documents])[:,np.newaxis], 30, axis=1)
