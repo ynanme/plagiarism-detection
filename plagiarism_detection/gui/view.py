@@ -14,7 +14,7 @@ class View (ttk.Frame):
         super().__init__(parent)
         self.home_screen = HomeScreen(self, actions["home"])
         self.experiments_screen = ExperimentsScreen(self, actions["experiments"])
-        self.pack()
+        self.pack(expand=True, fill="both")
 
     def show_home (self):
         self.experiments_screen.pack_forget()
@@ -120,7 +120,7 @@ class ExperimentsFrame (ttk.Frame):
         self.clearing_button = ttk.Button(self.footer, text="Clear", command=self.clear)
         self.clearing_button.pack()
         self.init_infos_frame()
-        self.plots_frame.pack()
+        self.plots_frame.pack(expand=True, fill="both")
         self.footer.pack()
 
     def init_infos_frame (self):
@@ -257,7 +257,7 @@ class PlotFrame (ttk.Frame):
         self.ax = self.fig.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.curves = []
-        self.canvas.get_tk_widget().pack()
+        self.canvas.get_tk_widget().pack(expand=True, fill="both")
 
     def pack_plot (self):
         self.canvas.get_tk_widget().pack()
