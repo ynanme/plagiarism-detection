@@ -52,7 +52,7 @@ class AdaBoost (Classifier):
         for i in range(samples_count):
             prediction = 0
             for model, model_weight in zip(self.models, self.models_weights):
-                prediction += (model.predict(features_matrix) * model_weight)
+                prediction += (model.predict(features_matrix)[i] * model_weight)
             predictions[i] = prediction
         predicted_labels = self.map_labels(np.sign(predictions), reverse=True)
         self.validate_labels(predicted_labels, [0, 1])
