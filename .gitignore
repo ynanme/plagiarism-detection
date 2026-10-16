@@ -7,3 +7,5 @@ __pycache__/
 
 # Jupyter-generated checkpoints
 .ipynb_checkpoints/
+
+plagiarism_detection/experiments_results/local/

@@ -30,7 +30,7 @@ data_directory = "data/1"
 data = load_data(data_directory)
 
 experiments_count = 0
-results_path = "experiments_results/others/"
+results_path = "experiments_results/local/"
 
 def get_experiment_file_name ():
     global experiments_count
