@@ -1,3 +1,5 @@
+import os
+
 from wordcloud import WordCloud
 import numpy as np
 import matplotlib.pyplot as plt
@@ -52,6 +54,7 @@ if __name__ == "__main__":
 
     data_directory = "data/1"
     results_path = "experiments_results/local/"
+    os.makedirs(results_path, exist_ok=True)
     texts, categories = load_data(data_directory)
 
     plagiarism_texts = [texts[i] for i in range(len(texts)) if categories[i] == 1]
@@ -70,5 +73,5 @@ if __name__ == "__main__":
 
     cloud = Cloud()
     cloud.wordcloud(texts_tokenized, title="All texts", saving_results_path=f"{results_path}all_texts.png")
-    cloud.wordcloud(plagiarism_texts_tokenized, non_plagiarism_texts_tokenized, title="Plagiarism texts", saving_results_path=f"{results_path}non_plagiarism.png")
-    cloud.wordcloud(non_plagiarism_texts_tokenized, plagiarism_texts_tokenized, title=" Non Plagiarism texts", saving_results_path=f"{results_path}plagiarism.png")
+    cloud.wordcloud(plagiarism_texts_tokenized, non_plagiarism_texts_tokenized, title="Plagiarism texts", saving_results_path=f"{results_path}plagiarism.png")
+    cloud.wordcloud(non_plagiarism_texts_tokenized, plagiarism_texts_tokenized, title=" Non Plagiarism texts", saving_results_path=f"{results_path}non_plagiarism.png")
