@@ -2,6 +2,7 @@ import tkinter as tk
 import matplotlib.pyplot as plt
 from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
 import matplotlib.ticker as ticker
 
 from gui.config import *
@@ -252,7 +253,8 @@ class PlotFrame (ttk.Frame):
 
     def __init__ (self, parent):
         super().__init__(parent)
-        self.fig, self.ax = plt.subplots(figsize=PLOTS_FIG_SIZE)
+        self.fig = Figure(figsize=PLOTS_FIG_SIZE)
+        self.ax = self.fig.add_subplot(111)
         self.canvas = FigureCanvasTkAgg(self.fig, master=self)
         self.curves = []
         self.canvas.get_tk_widget().pack()
